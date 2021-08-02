@@ -1,0 +1,35 @@
+MinRSS
+======
+MinRSS (minimal RSS) is an RSS feed reader inspired by suckless.org's
+IRC clients ii and sic. Instead of presenting RSS articles as entries
+in a menu, it saves them as files in folders.
+
+rss
+|--news
+|  |--article1
+|  `--article2
+`--blog
+  |--post
+  `--other_post
+
+Requirements
+------------
+You need libcurl and libxml2 to compile MinRSS.
+
+Installation
+------------
+Run this command as root to build MinRSS:
+
+	make clean install
+
+Configuration
+-------------
+MinRSS is configured via the config.h file, which you can create by
+either compiling MinRSS for the first time or copying config.def.h
+to it. To save your changes, recompile MinRSS.
+
+Using MinRSS
+------------
+Make a directory to store you RSS feeds, then cd into it. Then, enter 
+the minrss command to download the RSS feeds. Your feeds will be 
+available as folders in your current working directory.
