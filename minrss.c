@@ -76,8 +76,13 @@ finish(char *url, long responseCode)
 }
 
 int
-main()
+main(int argc, char  *argv[])
 {
+	if (argc == 2 && !strcmp("-v", argv[1]))
+		logMsg(0, "MinRSS %s\n", VERSION);
+	else if (argc != 1)
+		logMsg(0, "Usage: minrss [-v]\n");
+
     unsigned int i = 0;
 
     initCurl();

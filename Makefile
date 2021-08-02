@@ -1,12 +1,13 @@
+PREFIX = /usr/local
+VERSION = 0.1
+
 SRC = minrss.c util.c net.c xml.c
 OBJ =  $(SRC:.c=.o)
 CC = cc
 INCS =
 LIBS = -lcurl -I/usr/include/libxml2 -lxml2 -lm
 WARN = -Wall -Wpedantic -Wextra
-CFLAGS = $(LIBS) $(INCS) $(WARN)
-
-PREFIX = /usr/local
+CFLAGS = $(LIBS) $(INCS) $(WARN) -DVERSION=\"$(VERSION)\"
 
 all: config.h minrss
 
