@@ -12,6 +12,12 @@ rss
   |--post
   `--other_post
 
+Compatibility
+-------------
+This program is designed to work on Linux, but it should be possible
+to make it run on other operating systems. If you can do that
+successfully, please contact me about it.
+
 Requirements
 ------------
 You need libcurl and libxml2 to compile MinRSS.
@@ -30,6 +36,6 @@ to it. To save your changes, recompile MinRSS.
 
 Using MinRSS
 ------------
-Make a directory to store you RSS feeds, then cd into it. Then, enter 
+Make a directory to store your RSS feeds, then cd into it. Then, enter 
 the minrss command to download the RSS feeds. Your feeds will be 
 available as folders in your current working directory.
