@@ -54,17 +54,21 @@ san(char *str, int rep)
 	unsigned long long int len = strlen(str);
 	unsigned long long int offset = 0;
 
+	len = len > 255 ? 255 : len;
+
 	char *dup = ecalloc(len + 1, sizeof(char));
 	strcpy(dup, str);
 
 	for (unsigned long long int i = 0; i < len; i++) {
-		if ((dup[i] >= 'a' && dup[i] <= 'z') ||
-			(dup[i] >= 'A' && dup[i] <= 'Z') ||
-			(dup[i] >= '0' && dup[i] <= '9') ||
-			 dup[i] == '-' || dup[i] == '_')
+		char c = dup[i];
+
+		if ((c >= 'a' && c <= 'z') ||
+			(c >= 'A' && c <= 'Z') ||
+			(c >= '0' && c <= '9') ||
+			(c == '.' && i - offset != 0) ||
+			 c == '-' || c == '_' ||
+			 c == ' ')
 			dup[i - offset] = dup[i];
-		else if (dup[i] == ' ')
-			dup[i - offset] = '_';
 		else
 			offset++;
 	}
