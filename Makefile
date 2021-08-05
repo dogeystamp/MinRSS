@@ -5,7 +5,7 @@ SRC = minrss.c util.c net.c xml.c
 OBJ =  $(SRC:.c=.o)
 CC = cc
 INCS =
-LIBS = -lcurl -I/usr/include/libxml2 -lxml2 -lm
+LIBS = -lcurl -I/usr/include/libxml2 -lxml2
 WARN = -Wall -Wpedantic -Wextra
 CFLAGS = $(LIBS) $(INCS) $(WARN) -DVERSION=\"$(VERSION)\"
 
