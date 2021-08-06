@@ -9,16 +9,16 @@
 void
 logMsg(int lvl, char *msg, ...)
 {
-    va_list args;
-    va_start(args, msg);
+	va_list args;
+	va_start(args, msg);
 
 	if (lvl <= logLevel)
 		vfprintf(stderr, msg, args);
 
 	va_end(args);
 
-    if (!lvl)
-        exit(1);
+	if (!lvl)
+		exit(1);
 }
 
 void *
@@ -63,11 +63,11 @@ san(char *str, int rep)
 		char c = dup[i];
 
 		if ((c >= 'a' && c <= 'z') ||
-			(c >= 'A' && c <= 'Z') ||
-			(c >= '0' && c <= '9') ||
-			(c == '.' && i - offset != 0) ||
-			 c == '-' || c == '_' ||
-			 c == ' ')
+		        (c >= 'A' && c <= 'Z') ||
+		        (c >= '0' && c <= '9') ||
+		        (c == '.' && i - offset != 0) ||
+		        c == '-' || c == '_' ||
+		        c == ' ')
 			dup[i - offset] = dup[i];
 		else
 			offset++;
@@ -81,8 +81,8 @@ san(char *str, int rep)
 char fsep()
 {
 #ifdef _WIN32
-    return '\\';
+	return '\\';
 #else
-    return '/';
+	return '/';
 #endif
 }

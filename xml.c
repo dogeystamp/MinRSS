@@ -39,49 +39,49 @@ freeItem(itemStruct *item)
 
 static int
 parseXml(xmlDocPtr doc,
-		const char *feedName,
-		void itemAction(itemStruct *, const char *))
+         const char *feedName,
+         void itemAction(itemStruct *, const char *))
 {
 	if (!feedName || !feedName[0]) {
 		logMsg(1, "Missing feed name, please set one.\n");
 		return 1;
 	}
 
-    xmlNodePtr rootNode;
+	xmlNodePtr rootNode;
 
-    rootNode = xmlDocGetRootElement(doc);
+	rootNode = xmlDocGetRootElement(doc);
 
-    if (!rootNode) {
-        logMsg(1, "Empty document for feed. Skipping...\n");
-        return 1;
-    }
+	if (!rootNode) {
+		logMsg(1, "Empty document for feed. Skipping...\n");
+		return 1;
+	}
 
-    if (!TAGIS(rootNode, "rss")) {
-        logMsg(1, "XML document is not an RSS feed. Skipping...\n");
-        return 1;
-    }
+	if (!TAGIS(rootNode, "rss")) {
+		logMsg(1, "XML document is not an RSS feed. Skipping...\n");
+		return 1;
+	}
 
-    xmlChar *key;
+	xmlChar *key;
 
-    // Get channel XML tag
-    xmlNodePtr channel = rootNode->children;
+	// Get channel XML tag
+	xmlNodePtr channel = rootNode->children;
 
 	while(channel && !TAGIS(channel, "channel"))
 		channel = channel->next;
 
-    if (!channel || !TAGIS(channel, "channel")) {
-        logMsg(1, "Invalid RSS syntax. Skipping...\n");
-    }
+	if (!channel || !TAGIS(channel, "channel")) {
+		logMsg(1, "Invalid RSS syntax. Skipping...\n");
+	}
 
-    xmlNodePtr cur = channel->children;
+	xmlNodePtr cur = channel->children;
 
 	itemStruct *prev = NULL;
 
-    while (cur) {
+	while (cur) {
 
-        key = xmlNodeListGetString(doc, cur->children, 1);
+		key = xmlNodeListGetString(doc, cur->children, 1);
 
-        if (TAGIS(cur, "item")) {
+		if (TAGIS(cur, "item")) {
 			itemStruct *item = ecalloc(1, sizeof(itemStruct));
 
 			item->next = prev;
@@ -125,32 +125,31 @@ parseXml(xmlDocPtr doc,
 					if (TAGIS(itemNode, "category")) {
 						if (item->categories) {
 							erealloc(item->categories,
-									strlen(item->categories) + strlen(itemKey) + 2);
+							         strlen(item->categories) + strlen(itemKey) + 2);
 
 							strcat(item->categories, " ");
 							strcat(item->categories, itemKey);
-						}
-						else {
+						} else {
 							item->categories = ecalloc(
-									strlen(itemKey) + 2,
-									sizeof(char));
+							                       strlen(itemKey) + 2,
+							                       sizeof(char));
 							strcpy(item->categories, itemKey);
 						}
 					}
 
 					if (TAGIS(itemNode, "enclosure")) {
 						item->enclosureUrl =
-							(char *) xmlGetProp(itemNode, (xmlChar *) "url");
+						    (char *) xmlGetProp(itemNode, (xmlChar *) "url");
 						item->enclosureType =
-							(char *) xmlGetProp(itemNode, (xmlChar *) "type");
+						    (char *) xmlGetProp(itemNode, (xmlChar *) "type");
 
 						char *endPtr;
 						errno = 0;
 
 						item->enclosureLen = strtoul(
-									(char *) xmlGetProp(itemNode, (xmlChar *) "length"),
-									&endPtr,
-									10);
+						                         (char *) xmlGetProp(itemNode, (xmlChar *) "length"),
+						                         &endPtr,
+						                         10);
 
 						if (errno)
 							logMsg(1, "Invalid RSS: enclosure length is invalid.\n");
@@ -160,41 +159,41 @@ parseXml(xmlDocPtr doc,
 
 				itemNode = itemNode->next;
 			}
-        }
+		}
 
-        xmlFree(key);
-        cur = cur->next;
-    }
+		xmlFree(key);
+		cur = cur->next;
+	}
 
-    errno = 0;
-    int stat = mkdir((const char* ) feedName, S_IRWXU);
+	errno = 0;
+	int stat = mkdir((const char* ) feedName, S_IRWXU);
 
-    if (!stat && errno && errno != EEXIST) {
-        logMsg(1, "Error creating directory for feed.\n");
-        return 1;
-    }
+	if (!stat && errno && errno != EEXIST) {
+		logMsg(1, "Error creating directory for feed.\n");
+		return 1;
+	}
 
 	itemAction(prev, feedName);
 
-    return 0;
+	return 0;
 }
 
 int
 readDoc(char *content,
-		const char *feedName,
-		void itemAction(itemStruct *, const char *))
+        const char *feedName,
+        void itemAction(itemStruct *, const char *))
 {
-    xmlDocPtr doc;
+	xmlDocPtr doc;
 
-    doc = xmlReadMemory(content, strlen(content), "noname.xml", NULL, 0);
-    if (!doc) {
-        logMsg(1, "XML parser error.\n");
-        return 1;
-    }
+	doc = xmlReadMemory(content, strlen(content), "noname.xml", NULL, 0);
+	if (!doc) {
+		logMsg(1, "XML parser error.\n");
+		return 1;
+	}
 
-    int stat = parseXml(doc, feedName, itemAction);
+	int stat = parseXml(doc, feedName, itemAction);
 
-    xmlFreeDoc(doc);
+	xmlFreeDoc(doc);
 
-    return stat;
+	return stat;
 }

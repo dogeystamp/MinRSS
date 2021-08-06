@@ -19,6 +19,6 @@ struct itemStruct {
 void freeItem(itemStruct *item);
 
 int readDoc(
-	char *content,
-	const char *feedName,
-	void itemAction(itemStruct *, char const *chanTitle));
+    char *content,
+    const char *feedName,
+    void itemAction(itemStruct *, char const *chanTitle));

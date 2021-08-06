@@ -22,8 +22,8 @@ itemAction(itemStruct *item, const char *folder)
 
 		if (fileName[0])
 			filePath = ecalloc(
-				strlen(folder) + strlen(fileName) + 2,
-				sizeof(char));
+			               strlen(folder) + strlen(fileName) + 2,
+			               sizeof(char));
 		else {
 			logMsg(1, "Invalid article title.\n");
 
@@ -83,35 +83,35 @@ main(int argc, char  *argv[])
 	else if (argc != 1)
 		logMsg(0, "Usage: minrss [-v]\n");
 
-    unsigned int i = 0;
+	unsigned int i = 0;
 
-    initCurl();
+	initCurl();
 
-    outputStruct outputs[LEN(links)];
-    memset(outputs, 0, sizeof(outputs));
+	outputStruct outputs[LEN(links)];
+	memset(outputs, 0, sizeof(outputs));
 
-    for (i = 0; i < LEN(links); i++) {
+	for (i = 0; i < LEN(links); i++) {
 		if (links[0].url[0] == '\0')
 			logMsg(0, "No feeds, add them in config.def.h\n");
 
-        logMsg(4, "Requesting %s\n", links[i].url);
-        createRequest(links[i].url, &outputs[i]);
-    }
+		logMsg(4, "Requesting %s\n", links[i].url);
+		createRequest(links[i].url, &outputs[i]);
+	}
 
-    performRequests(finish);
+	performRequests(finish);
 
-    logMsg(3, "Finished downloads.\n");
+	logMsg(3, "Finished downloads.\n");
 
-    for (i = 0; i < LEN(links); i++) {
-        logMsg(4, "Parsing %s\n", links[i].url);
+	for (i = 0; i < LEN(links); i++) {
+		logMsg(4, "Parsing %s\n", links[i].url);
 
 		if (outputs[i].buffer && outputs[i].buffer[0]) {
 			readDoc(outputs[i].buffer, links[i].feedName, itemAction);
 			free(outputs[i].buffer);
 		}
-    }
+	}
 
-    logMsg(3, "Finished parsing feeds.\n");
+	logMsg(3, "Finished parsing feeds.\n");
 
-    return 0;
+	return 0;
 }

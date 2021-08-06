@@ -1,8 +1,8 @@
 #include <curl/curl.h>
 
 typedef struct {
-    char *buffer;
-    size_t size;
+	char *buffer;
+	size_t size;
 } outputStruct;
 
 int initCurl();
