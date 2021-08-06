@@ -1,13 +1,15 @@
 PREFIX = /usr/local
 VERSION = 0.1
 
+# CC = cc
 SRC = minrss.c util.c net.c xml.c
 OBJ =  $(SRC:.c=.o)
-CC = cc
-INCS =
-LIBS = -lcurl -I/usr/include/libxml2 -lxml2
+PKG_CONFIG = pkg-config
+CURL_CONFIG = curl-config
+INCS = `$(PKG_CONFIG) --cflags libxml-2.0` `$(CURL_CONFIG) --cflags`
+LIBS = `$(PKG_CONFIG) --libs libxml-2.0` `$(CURL_CONFIG) --libs`
 WARN = -Wall -Wpedantic -Wextra
-CFLAGS = $(LIBS) $(INCS) $(WARN) -DVERSION=\"$(VERSION)\"
+CFLAGS = $(INCS) $(LIBS) $(WARN) -DVERSION=\"$(VERSION)\"
 
 all: config.h minrss
 
@@ -26,6 +28,7 @@ minrss: $(OBJ)
 clean:
 	rm -f minrss $(OBJ)
 
+install: CFLAGS += -O3
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	cp -f minrss $(DESTDIR)$(PREFIX)/bin
