@@ -22,7 +22,9 @@ itemAction(itemStruct *item, const char *folder)
 
 		if (fileName[0])
 			filePath = ecalloc(
-			               strlen(folder) + strlen(fileName) + 2,
+			               strlen(folder)
+						   + strlen(fileName) + 2
+						   + strlen(fileExt),
 			               sizeof(char));
 		else {
 			logMsg(1, "Invalid article title.\n");
@@ -42,6 +44,8 @@ itemAction(itemStruct *item, const char *folder)
 		strcat(filePath, fileName);
 		free(fileName);
 
+		strcat(filePath, fileExt);
+
 		FILE *itemFile = fopen(filePath, "a");
 		free(filePath);
 
@@ -49,9 +53,9 @@ itemAction(itemStruct *item, const char *folder)
 		if (!ftell(itemFile)) {
 			newItems++;
 
-			fprintf(itemFile, "%s\n\n", cur->title);
-			fprintf(itemFile, "%s\n", san(cur->description, 0));
-			fprintf(itemFile, "%s\n", san(cur->link, 0));
+			fprintf(itemFile, "<h1>%s</h1><br>\n", cur->title);
+			fprintf(itemFile, "<a href=\"%s\">Link</a><br>\n", san(cur->link, 0));
+			fprintf(itemFile, "%s", san(cur->description, 0));
 		}
 
 		fclose(itemFile);

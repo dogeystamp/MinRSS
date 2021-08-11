@@ -34,3 +34,6 @@ static const int logLevel = 3;
 // Set the maximum amount of redirects curl will follow.
 // Use 0 to disable redirects, and -1 for no limit.
 static const int maxRedirs = 10;
+
+// File extension used for each article.
+static const char fileExt[] = ".html";
