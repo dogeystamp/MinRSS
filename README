@@ -18,9 +18,14 @@ You need libcurl and libxml2 to compile MinRSS.
 
 Installation
 ------------
-Run this command as root to build MinRSS:
+Run this command to build MinRSS:
 
 	make clean install
+
+This will install the binary to ~/.local/bin. Make sure that this directory is
+in your $PATH.
+
+If you need to change this, set the PREFIX variable in Makefile.
 
 Configuration
 -------------

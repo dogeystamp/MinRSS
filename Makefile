@@ -1,4 +1,4 @@
-PREFIX = /usr/local
+PREFIX = ~/.local
 VERSION = 0.1
 
 # CC = cc
