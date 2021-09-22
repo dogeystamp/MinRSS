@@ -1,7 +1,6 @@
 typedef struct {
 	const char *url;
 	const char *feedName;
-	const char *tags;
 } linkStruct;
 
 /* Example link:
@@ -17,7 +16,6 @@ static const linkStruct links[] = {
 	{
 		.url = "",
 		.feedName = "",
-		.tags = ""
 	},
 };
 
