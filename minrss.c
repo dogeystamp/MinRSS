@@ -11,6 +11,8 @@
 void
 itemAction(itemStruct *item, const char *folder)
 {
+	// Receives a link list of articles to process.
+
 	itemStruct *cur = item;
 
 	unsigned long long int newItems = 0;
@@ -71,6 +73,8 @@ itemAction(itemStruct *item, const char *folder)
 void
 finish(char *url, long responseCode)
 {
+	// Executed after a download finishes
+
 	if (responseCode == 200)
 		logMsg(4, "Finished downloading %s\n", url);
 	else if (!responseCode)

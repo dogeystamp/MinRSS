@@ -14,6 +14,8 @@
 void
 freeItem(itemStruct *item)
 {
+	// Free the memory used by an article.
+
 	char **mems[] = {
 		&item->title,
 		&item->link,
@@ -42,6 +44,8 @@ parseXml(xmlDocPtr doc,
          const char *feedName,
          void itemAction(itemStruct *, const char *))
 {
+	// Parse the XML in a single document.
+
 	if (!feedName || !feedName[0]) {
 		logMsg(1, "Missing feed name, please set one.\n");
 		return 1;
@@ -73,6 +77,7 @@ parseXml(xmlDocPtr doc,
 		logMsg(1, "Invalid RSS syntax. Skipping...\n");
 	}
 
+	// Pointer to an article xml tag
 	xmlNodePtr cur = channel->children;
 
 	itemStruct *prev = NULL;
@@ -84,6 +89,7 @@ parseXml(xmlDocPtr doc,
 		if (TAGIS(cur, "item")) {
 			itemStruct *item = ecalloc(1, sizeof(itemStruct));
 
+			// Build a linked list of item structs to pass to itemAction()
 			item->next = prev;
 			prev = item;
 
@@ -183,6 +189,8 @@ readDoc(char *content,
         const char *feedName,
         void itemAction(itemStruct *, const char *))
 {
+	// Initialize the XML document, read it, then free it
+
 	xmlDocPtr doc;
 
 	doc = xmlReadMemory(content, strlen(content), "noname.xml", NULL, 0);

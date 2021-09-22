@@ -12,6 +12,8 @@ static CURLM *multiHandle;
 int
 initCurl()
 {
+	// Initialise the curl handle.
+
 	curl_global_init(CURL_GLOBAL_ALL);
 	multiHandle = curl_multi_init();
 
@@ -21,6 +23,8 @@ initCurl()
 static size_t
 writeCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
+	// Write blocks of data to the output.
+
 	size_t realsize = size * nmemb;
 
 	outputStruct *mem = (outputStruct*) data;
@@ -40,6 +44,8 @@ writeCallback(void *ptr, size_t size, size_t nmemb, void *data)
 int
 createRequest(const char* url, outputStruct *output)
 {
+	// Create the curl request for an URL.
+
 	CURL *requestHandle = curl_easy_init();
 
 	if (!requestHandle)
@@ -75,6 +81,8 @@ createRequest(const char* url, outputStruct *output)
 int
 performRequests(void callback(char *, long))
 {
+	// Perform all the curl requests.
+
 	int runningRequests;
 
 	do {
@@ -101,7 +109,8 @@ performRequests(void callback(char *, long))
 				curl_easy_cleanup(requestHandle);
 			}
 		}
-		// > 0 because curl puts negative numbers when there's broken requests
+
+	// > 0 because curl puts negative numbers when there's broken requests
 	} while (runningRequests > 0);
 
 	curl_multi_cleanup(multiHandle);
