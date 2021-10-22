@@ -20,15 +20,6 @@ freeItem(itemStruct *item)
 		&item->title,
 		&item->link,
 		&item->description,
-		&item->author,
-		&item->comments,
-		&item->guid,
-		&item->pubDate,
-		&item->sourceName,
-		&item->sourceUrl,
-		&item->categories,
-		&item->enclosureUrl,
-		&item->enclosureType,
 	};
 
 	for (unsigned long int i = 0; i < LEN(mems); i++) {
@@ -102,21 +93,11 @@ parseXml(xmlDocPtr doc,
 					"title",
 					"link",
 					"description",
-					"author",
-					"comments",
-					"guid",
-					"pubDate",
-					"source"
 				};
 				char **atts[] = {
 					&item->title,
 					&item->link,
 					&item->description,
-					&item->author,
-					&item->comments,
-					&item->guid,
-					&item->pubDate,
-					&item->sourceName,
 				};
 
 				if (itemKey) {
@@ -128,38 +109,6 @@ parseXml(xmlDocPtr doc,
 						}
 					}
 
-					if (TAGIS(itemNode, "category")) {
-						if (item->categories) {
-							erealloc(item->categories,
-							         strlen(item->categories) + strlen(itemKey) + 2);
-
-							strcat(item->categories, " ");
-							strcat(item->categories, itemKey);
-						} else {
-							item->categories = ecalloc(
-							                       strlen(itemKey) + 2,
-							                       sizeof(char));
-							strcpy(item->categories, itemKey);
-						}
-					}
-
-					if (TAGIS(itemNode, "enclosure")) {
-						item->enclosureUrl =
-						    (char *) xmlGetProp(itemNode, (xmlChar *) "url");
-						item->enclosureType =
-						    (char *) xmlGetProp(itemNode, (xmlChar *) "type");
-
-						char *endPtr;
-						errno = 0;
-
-						item->enclosureLen = strtoul(
-						                         (char *) xmlGetProp(itemNode, (xmlChar *) "length"),
-						                         &endPtr,
-						                         10);
-
-						if (errno)
-							logMsg(1, "Invalid RSS: enclosure length is invalid.\n");
-					}
 					xmlFree(itemKey);
 				}
 
