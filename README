@@ -1,7 +1,7 @@
 MinRSS
 ======
-MinRSS (minimal RSS) is an RSS feed reader for Linux inspired by suckless.org's
-IRC clients ii and sic. Instead of presenting RSS articles as entries
+MinRSS is an RSS/Atom feed reader for Linux inspired by suckless.org's
+IRC clients ii and sic. Instead of presenting articles as entries
 in a menu, it saves them as files in folders.
 
 rss
