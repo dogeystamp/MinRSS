@@ -33,6 +33,18 @@ MinRSS is configured via the config.h file, which you can create by
 either compiling MinRSS for the first time or copying config.def.h
 to it. To save your changes, recompile MinRSS.
 
+You are required to input a list of URLs in config.h before compilation
+in order to successfully run MinRSS.
+
+
+	static const linkStruct links[] = {
+		{
+			.url = "https://example.com/rss/",
+			.feedName = "example-feed",
+		},
+	};
+
+
 Using MinRSS
 ------------
 Make a directory to store your RSS feeds, then cd into it. Then, enter 
