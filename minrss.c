@@ -56,15 +56,16 @@ itemAction(itemStruct *item, const char *folder)
 		memcpy(filePath, folder, folderLen * sizeof(char));
 
 		filePath[folderLen] = fsep();
-		filePath[pathLen] = '\0';
+		filePath[pathLen - 1] = '\0';
 
 		memcpy(filePath + folderLen + 1, fileName, fileNameLen * sizeof(char));
-		free(fileName);
-
 		memcpy(filePath + pathLen - extLen - 1, fileExt, extLen * sizeof(char));
 
 		FILE *itemFile = fopen(filePath, "a");
+
 		free(filePath);
+		free(fileName);
+
 
 		// Do not overwrite files
 		if (!ftell(itemFile)) {
