@@ -28,17 +28,22 @@ itemAction(itemStruct *item, const char *folder)
 
 	unsigned long long int newItems = 0;
 
+	size_t folderLen = strlen(folder);
+	size_t extLen = strlen(fileExt);
+
 	while (cur) {
 		char *filePath;
 		char *fileName = san(cur->title, 1);
+		size_t fileNameLen = strlen(fileName);
+
 		itemStruct *prev = cur;
 
+
+		// +1 for null terminator and +1 for path separator
+		size_t pathLen = folderLen + fileNameLen + extLen + 2;
+
 		if (fileName[0])
-			filePath = ecalloc(
-			               strlen(folder)
-						   + strlen(fileName) + 2
-						   + strlen(fileExt),
-			               sizeof(char));
+			filePath = ecalloc(pathLen, sizeof(char));
 		else {
 			logMsg(1, "Invalid article title.\n");
 
@@ -48,16 +53,15 @@ itemAction(itemStruct *item, const char *folder)
 			continue;
 		}
 
-		strcpy(filePath, folder);
+		memcpy(filePath, folder, folderLen * sizeof(char));
 
-		unsigned long long int ind = strlen(filePath);
-		filePath[ind] = fsep();
-		filePath[ind + 1] = '\0';
+		filePath[folderLen] = fsep();
+		filePath[pathLen] = '\0';
 
-		strcat(filePath, fileName);
+		memcpy(filePath + folderLen + 1, fileName, fileNameLen * sizeof(char));
 		free(fileName);
 
-		strcat(filePath, fileExt);
+		memcpy(filePath + pathLen - extLen - 1, fileExt, extLen * sizeof(char));
 
 		FILE *itemFile = fopen(filePath, "a");
 		free(filePath);

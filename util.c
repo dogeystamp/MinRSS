@@ -68,7 +68,7 @@ san(char *str, int rep)
 	len = len > 255 ? 255 : len;
 
 	char *dup = ecalloc(len + 1, sizeof(char));
-	strcpy(dup, str);
+	memcpy(dup, str, (len + 1) * sizeof(char));
 
 	for (unsigned long long int i = 0; i < len; i++) {
 		char c = dup[i];

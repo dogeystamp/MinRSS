@@ -182,9 +182,9 @@ parseXml(xmlDocPtr doc,
 				if (itemKey) {
 					for (unsigned long int i = 0; i < LEN(atts); i++) {
 						if (TAGIS(itemNode, attKeys[i])) {
-							*atts[i] = ecalloc(strlen(itemKey) + 1, sizeof(char));
-
-							strcpy(*atts[i], itemKey);
+							size_t keyLen = strlen(itemKey) + 1;
+							*atts[i] = ecalloc(keyLen, sizeof(char));
+							memcpy(*atts[i], itemKey, keyLen * sizeof(char));
 
 							break;
 						}
@@ -205,8 +205,9 @@ parseXml(xmlDocPtr doc,
 						return 1;
 					}
 
-					item->link = ecalloc(strlen((char *) link) + 1, sizeof(char));
-					strcpy(item->link, (char *) link);
+					size_t linkLen = strlen((char *) link) + 1;
+					item->link = ecalloc(linkLen, sizeof(char));
+					memcpy(item->link, (char *) link, linkLen * sizeof(char));
 
 					xmlFree(link);
 				}
