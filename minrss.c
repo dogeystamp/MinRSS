@@ -82,7 +82,7 @@ itemAction(itemStruct *item, const char *folder)
 	}
 
 	if (newItems)
-		logMsg(2, "%d new articles for feed %s.\n", newItems, folder);
+		logMsg(2, "%s : %d new articles\n", folder, newItems);
 }
 
 void
@@ -99,7 +99,7 @@ finish(char *url, long responseCode)
 }
 
 int
-main(int argc, char  *argv[])
+main(int argc, char *argv[])
 {
 	if (argc == 2 && !strcmp("-v", argv[1]))
 		logMsg(0, "MinRSS %s\n", VERSION);
@@ -126,7 +126,7 @@ main(int argc, char  *argv[])
 	logMsg(3, "Finished downloads.\n");
 
 	for (i = 0; i < LEN(links); i++) {
-		logMsg(4, "Parsing %s\n", links[i].url);
+		logMsg(5, "Parsing %s\n", links[i].url);
 
 		if (outputs[i].buffer && outputs[i].buffer[0]) {
 			readDoc(outputs[i].buffer, links[i].feedName, itemAction);

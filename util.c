@@ -23,8 +23,14 @@ logMsg(int lvl, char *msg, ...)
 	va_list args;
 	va_start(args, msg);
 
-	if (lvl <= logLevel)
-		vfprintf(stderr, msg, args);
+	if (lvl <= logLevel) {
+		if (lvl == 2) {
+			vfprintf(stdout, msg, args);
+		} else {
+			vfprintf(stderr, msg, args);
+			fprintf(stderr, "minrss: ");
+		}
+	}
 
 	va_end(args);
 

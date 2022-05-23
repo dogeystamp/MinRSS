@@ -35,12 +35,12 @@ static const linkStruct links[] = {
 /*
  * 0: Fatal errors
  * 1: Errors
- * 2: Warnings
+ * 2: Normal output
  * 3: Info messages
  * 4: Verbose mode
 */
 
-static const int logLevel = 3;
+static const int logLevel = 2;
 
 // Set the maximum amount of redirects curl will follow.
 // Use 0 to disable redirects, and -1 for no limit.
