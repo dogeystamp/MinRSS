@@ -9,6 +9,8 @@ You should have received a copy of the GNU General Public License along with thi
 © 2021 dogeystamp <dogeystamp@disroot.org>
 */
 
+#include <curl/curl.h>
+
 typedef struct {
 	const char *url;
 	const char *feedName;
@@ -43,6 +45,10 @@ static const int logLevel = 3;
 // Set the maximum amount of redirects curl will follow.
 // Use 0 to disable redirects, and -1 for no limit.
 static const int maxRedirs = 10;
+
+// Restrict allowed protocols for curl using a bitmask.
+// For more information: https://curl.se/libcurl/c/CURLOPT_PROTOCOLS.html
+static const int curlProtocols = CURLPROTO_HTTPS | CURLPROTO_HTTP;
 
 // File extension used for each article.
 static const char fileExt[] = ".html";

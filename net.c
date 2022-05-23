@@ -73,6 +73,7 @@ createRequest(const char* url, outputStruct *output)
 	stat = curl_easy_setopt(requestHandle, CURLOPT_WRITEFUNCTION, writeCallback);
 	stat = curl_easy_setopt(requestHandle, CURLOPT_WRITEDATA, (void*)output);
 	stat = curl_easy_setopt(requestHandle, CURLOPT_MAXREDIRS, maxRedirs);
+	stat = curl_easy_setopt(requestHandle, CURLOPT_PROTOCOLS, curlProtocols);
 	stat = curl_easy_setopt(requestHandle, CURLOPT_FOLLOWLOCATION, 1L);
 
 	if (stat) {

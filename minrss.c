@@ -93,7 +93,7 @@ finish(char *url, long responseCode)
 	if (responseCode == 200)
 		logMsg(4, "Finished downloading %s\n", url);
 	else if (!responseCode)
-		logMsg(1, "Can not reach %s\n", url);
+		logMsg(1, "Can not reach %s: ensure the protocol is enabled and the site is accessible.\n", url);
 	else
 		logMsg(1, "HTTP %ld for %s\n", responseCode, url);
 }
