@@ -27,8 +27,8 @@ logMsg(int lvl, char *msg, ...)
 		if (lvl == 2) {
 			vfprintf(stdout, msg, args);
 		} else {
-			vfprintf(stderr, msg, args);
 			fprintf(stderr, "minrss: ");
+			vfprintf(stderr, msg, args);
 		}
 	}
 
