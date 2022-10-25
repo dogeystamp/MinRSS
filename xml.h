@@ -18,9 +18,9 @@ struct itemStruct {
 };
 
 enum feedFormat {
-	none,
-	rss,
-	atom
+	NONE,
+	RSS,
+	ATOM,
 };
 
 void freeItem(itemStruct *item);

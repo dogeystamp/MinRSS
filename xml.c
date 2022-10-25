@@ -62,17 +62,17 @@ parseXml(xmlDocPtr doc,
 		return 1;
 	}
 
-	enum feedFormat format = none;
+	enum feedFormat format = NONE;
 
 	if (TAGIS(rootNode, "rss")) {
-		format = rss;
+		format = RSS;
 	} else if (TAGIS(rootNode, "feed")) {
 		if (!xmlStrcmp(rootNode->ns->href, (const xmlChar *) "http://www.w3.org/2005/Atom"))
-			format = atom;
+			format = ATOM;
 	}
 
 	
-	if (format == none) {
+	if (format == NONE) {
 		logMsg(1, "XML document is not an RSS or Atom feed.\n");
 		return 1;
 	}
@@ -81,7 +81,7 @@ parseXml(xmlDocPtr doc,
 	xmlNodePtr cur = rootNode->children;
 
 	switch (format) {
-		case rss:
+		case RSS:
 			// Get channel XML tag
 			while(cur && !TAGIS(cur, "channel"))
 				cur = cur->next;
@@ -95,7 +95,7 @@ parseXml(xmlDocPtr doc,
 			cur = cur->children;
 			break;
 
-		case atom:
+		case ATOM:
 			// Set cur to child of feed
 			cur = rootNode->children;
 			break;
@@ -114,10 +114,10 @@ parseXml(xmlDocPtr doc,
 		short isArticle = 0;
 
 		switch (format) {
-			case rss:
+			case RSS:
 				isArticle = TAGIS(cur, "item");
 				break;
-			case atom:
+			case ATOM:
 				isArticle = TAGIS(cur, "entry");
 				break;
 			default:
@@ -154,11 +154,11 @@ parseXml(xmlDocPtr doc,
 			};
 
 			switch (format) {
-				case rss:
+				case RSS:
 					attKeys = attKeysRss;
 					break;
 
-				case atom:
+				case ATOM:
 					attKeys = attKeysAtom;
 					break;
 
@@ -196,7 +196,7 @@ parseXml(xmlDocPtr doc,
 				// Exceptions
 				
 				// Atom entry link tag
-				if (format == atom && TAGIS(itemNode, "link")) {
+				if (format == ATOM && TAGIS(itemNode, "link")) {
 					xmlChar *link = xmlGetProp(itemNode, (xmlChar *) "href");
 
 					if (!link) {
