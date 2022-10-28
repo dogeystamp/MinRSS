@@ -49,6 +49,3 @@ static const int maxRedirs = 10;
 // Restrict allowed protocols for curl using a bitmask.
 // For more information: https://curl.se/libcurl/c/CURLOPT_PROTOCOLS.html
 static const int curlProtocols = CURLPROTO_HTTPS | CURLPROTO_HTTP;
-
-// File extension used for each article.
-static const char fileExt[] = ".html";

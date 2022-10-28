@@ -14,5 +14,5 @@ You should have received a copy of the GNU General Public License along with thi
 void logMsg(int argc, char *msg, ...);
 void *ecalloc(size_t nmemb, size_t size);
 void *erealloc(void *p, size_t nmemb);
-char *san(char *str, int rep);
+char *san(char *str);
 char fsep();

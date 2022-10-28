@@ -2,7 +2,7 @@ PREFIX = ~/.local
 VERSION = 0.1
 
 # CC = cc
-SRC = minrss.c util.c net.c
+SRC = minrss.c util.c net.c handlers.c
 OBJ =  $(SRC:.c=.o)
 PKG_CONFIG = pkg-config
 CURL_CONFIG = curl-config

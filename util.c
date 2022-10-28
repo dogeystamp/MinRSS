@@ -61,12 +61,10 @@ erealloc(void *p, size_t size)
 }
 
 char *
-san(char *str, int rep)
+san(char *str)
 {
 	if (!str)
 		return "";
-	if (!rep)
-		return str;
 
 	unsigned long long int len = strlen(str);
 	unsigned long long int offset = 0;
