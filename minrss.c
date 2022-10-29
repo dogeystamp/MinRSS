@@ -114,45 +114,6 @@ parseXml(xmlDocPtr doc,
 		if (isArticle) {
 			itemStruct *item = ecalloc(1, sizeof(itemStruct));
 
-			// The selected set of attribute keys
-			char **attKeys;
-
-			// Struct variables to map attributes to
-			char **atts[] = {
-				&item->title,
-				&item->link,
-				&item->description,
-			};
-
-			// Attribute keys for each format
-			
-			char *attKeysRss[LEN(atts)] = {
-				"title",
-				"link",
-				"description",
-			};
-
-			char *attKeysAtom[LEN(atts)] = {
-				"title",
-				// link has special treatment because its value is in href not within the tag
-				"",
-				"content",
-			};
-
-			switch (format) {
-				case RSS:
-					attKeys = attKeysRss;
-					break;
-
-				case ATOM:
-					attKeys = attKeysAtom;
-					break;
-
-				default:
-					logMsg(1, "Missing article attribute keys for format\n");
-					return 1;
-			};
-
 			// Build a linked list of item structs to pass to itemAction()
 			item->next = prev;
 			prev = item;
@@ -165,39 +126,31 @@ parseXml(xmlDocPtr doc,
 			while (itemNode) {
 				itemKey = (char *)xmlNodeListGetString(doc, itemNode->children, 1);
 
-				if (itemKey) {
-					for (unsigned long int i = 0; i < LEN(atts); i++) {
-						if (TAGIS(itemNode, attKeys[i])) {
-							size_t keyLen = strlen(itemKey) + 1;
-							*atts[i] = ecalloc(keyLen, sizeof(char));
-							memcpy(*atts[i], itemKey, keyLen * sizeof(char));
-
-							break;
-						}
-					}
-
-					xmlFree(itemKey);
-				}
-				
-				// Exceptions
-				
-				// Atom entry link tag
-				if (format == ATOM && TAGIS(itemNode, "link")) {
-					xmlChar *link = xmlGetProp(itemNode, (xmlChar *) "href");
-
-					if (!link) {
-						logMsg(1, "Missing Atom entry link\n");
-						xmlFree(link);
-						return 1;
-					}
-
-					size_t linkLen = strlen((char *) link) + 1;
-					item->link = ecalloc(linkLen, sizeof(char));
-					memcpy(item->link, (char *) link, linkLen * sizeof(char));
-
-					xmlFree(link);
+				switch (format) {
+					case RSS:
+						if TAGIS(itemNode, "link")
+							copyField(item, FIELD_LINK, itemKey);
+						else if TAGIS(itemNode, "description")
+							copyField(item, FIELD_DESCRIPTION, itemKey);
+						else if TAGIS(itemNode, "title")
+							copyField(item, FIELD_TITLE, itemKey);
+						else if TAGIS(itemNode, "enclosure")
+							rssEnclosure(item, itemNode);
+						break;
+					case ATOM:
+						if TAGIS(itemNode, "link")
+							atomLink(item, itemNode);
+						else if TAGIS(itemNode, "content")
+							copyField(item, FIELD_DESCRIPTION, itemKey);
+						else if TAGIS(itemNode, "title")
+							copyField(item, FIELD_TITLE, itemKey);
+						break;
+					default:
+						break;
 				}
 
+				xmlFree(itemKey);
+				
 				itemNode = itemNode->next;
 			}
 		}
