@@ -25,7 +25,11 @@ You should have received a copy of the GNU General Public License along with thi
 #include "handlers.h"
 #include "config.h"
 
-#define TAGIS(X, Y) (!xmlStrcmp(X->name, (const xmlChar *) Y))
+static inline int
+tagIs(xmlNodePtr node, char *str)
+{
+	return !xmlStrcmp(node->name, (const xmlChar *) str);
+}
 
 static int
 parseXml(xmlDocPtr doc,
@@ -50,9 +54,9 @@ parseXml(xmlDocPtr doc,
 
 	enum feedFormat format = NONE;
 
-	if (TAGIS(rootNode, "rss")) {
+	if (tagIs(rootNode, "rss")) {
 		format = RSS;
-	} else if (TAGIS(rootNode, "feed")) {
+	} else if (tagIs(rootNode, "feed")) {
 		if (!xmlStrcmp(rootNode->ns->href, (const xmlChar *) "http://www.w3.org/2005/Atom"))
 			format = ATOM;
 	}
@@ -69,10 +73,10 @@ parseXml(xmlDocPtr doc,
 	switch (format) {
 		case RSS:
 			// Get channel XML tag
-			while(cur && !TAGIS(cur, "channel"))
+			while(cur && !tagIs(cur, "channel"))
 				cur = cur->next;
 
-			if (!cur || !TAGIS(cur, "channel")) {
+			if (!cur || !tagIs(cur, "channel")) {
 				logMsg(1, "Invalid RSS syntax.\n");
 				return 1;
 			}
@@ -101,10 +105,10 @@ parseXml(xmlDocPtr doc,
 
 		switch (format) {
 			case RSS:
-				isArticle = TAGIS(cur, "item");
+				isArticle = tagIs(cur, "item");
 				break;
 			case ATOM:
-				isArticle = TAGIS(cur, "entry");
+				isArticle = tagIs(cur, "entry");
 				break;
 			default:
 				logMsg(1, "Missing article tag name for format\n");
@@ -128,21 +132,21 @@ parseXml(xmlDocPtr doc,
 
 				switch (format) {
 					case RSS:
-						if TAGIS(itemNode, "link")
+						if (tagIs(itemNode, "link"))
 							copyField(item, FIELD_LINK, itemKey);
-						else if TAGIS(itemNode, "description")
+						else if (tagIs(itemNode, "description"))
 							copyField(item, FIELD_DESCRIPTION, itemKey);
-						else if TAGIS(itemNode, "title")
+						else if (tagIs(itemNode, "title"))
 							copyField(item, FIELD_TITLE, itemKey);
-						else if TAGIS(itemNode, "enclosure")
+						else if (tagIs(itemNode, "enclosure"))
 							rssEnclosure(item, itemNode);
 						break;
 					case ATOM:
-						if TAGIS(itemNode, "link")
+						if (tagIs(itemNode, "link"))
 							atomLink(item, itemNode);
-						else if TAGIS(itemNode, "content")
+						else if (tagIs(itemNode, "content"))
 							copyField(item, FIELD_DESCRIPTION, itemKey);
-						else if TAGIS(itemNode, "title")
+						else if (tagIs(itemNode, "title"))
 							copyField(item, FIELD_TITLE, itemKey);
 						break;
 					default:
