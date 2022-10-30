@@ -21,7 +21,6 @@ typedef struct {
 		.url = "https://example.com/rss/feed.rss",
 		// This will be used as the folder name for the feed.
 		.feedName = "examplefeed",
-		.tags = "test example sample"
 	},
 */
 
