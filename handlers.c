@@ -132,9 +132,14 @@ openFile(const char *folder, char *fileName, char *fileExt)
 static void
 outputHtml(itemStruct *item, FILE *f)
 {
-	fprintf(f, "<h1>%s</h1><br>\n", item->fields[FIELD_TITLE]);
-	fprintf(f, "<a href=\"%s\">Link</a><br>\n", item->fields[FIELD_LINK]);
-	fprintf(f, "%s", item->fields[FIELD_DESCRIPTION]);
+	if (item->fields[FIELD_TITLE])
+		fprintf(f, "<h1>%s</h1><br>\n", item->fields[FIELD_TITLE]);
+	if (item->fields[FIELD_LINK])
+		fprintf(f, "<a href=\"%s\">Link</a><br>\n", item->fields[FIELD_LINK]);
+	if (item->fields[FIELD_ENCLOSURE_URL])
+		fprintf(f, "<a href=\"%s\">Enclosure</a><br>\n", item->fields[FIELD_ENCLOSURE_URL]);
+	if (item->fields[FIELD_DESCRIPTION])
+		fprintf(f, "%s", item->fields[FIELD_DESCRIPTION]);
 }
 
 void
