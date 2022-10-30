@@ -4,6 +4,9 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xmlreader.h>
+#ifdef JSON
+#include <json-c/json.h>
+#endif // JSON
 
 #include "config.h"
 #include "util.h"
@@ -142,6 +145,36 @@ outputHtml(itemStruct *item, FILE *f)
 		fprintf(f, "%s", item->fields[FIELD_DESCRIPTION]);
 }
 
+#ifdef JSON
+static void
+outputJson(itemStruct *item, FILE *f)
+{
+	json_object *root = json_object_new_object();
+
+	if (item->fields[FIELD_TITLE])
+		json_object_object_add(root, "title",
+				json_object_new_string(item->fields[FIELD_TITLE]));
+
+	if (item->fields[FIELD_LINK])
+		json_object_object_add(root, "link",
+				json_object_new_string(item->fields[FIELD_LINK]));
+
+	if (item->fields[FIELD_ENCLOSURE_URL]) {
+		json_object *enclosure = json_object_new_object();
+		json_object_object_add(enclosure, "link",
+				json_object_new_string(item->fields[FIELD_ENCLOSURE_URL]));
+		json_object_object_add(root, "enclosure", enclosure);
+	}
+
+	if (item->fields[FIELD_DESCRIPTION])
+		json_object_object_add(root, "description",
+				json_object_new_string(item->fields[FIELD_DESCRIPTION]));
+
+	fprintf(f, "%s", json_object_to_json_string_ext(root, 0));
+	json_object_put(root);
+}
+#endif // JSON
+
 void
 itemAction(itemStruct *item, const char *folder)
 {
@@ -154,11 +187,32 @@ itemAction(itemStruct *item, const char *folder)
 
 	while (cur) {
 		prev = cur;
-		FILE *itemFile = openFile(folder, san(cur->fields[FIELD_TITLE]), ".html");
+
+		char fileExt[10];
+		void (*outputFunction)(itemStruct *, FILE *);
+
+		switch (outputFormat) {
+			case OUTPUT_HTML:
+				memcpy(fileExt, ".html", 6);
+				outputFunction = &outputHtml;
+				break;
+#ifdef JSON
+			case OUTPUT_JSON:
+				memcpy(fileExt, ".json", 6);
+				outputFunction = &outputJson;
+				break;
+#endif //JSON
+	   		
+			default:
+				logMsg(0, "Output format is invalid.");
+				break;
+		}
+		
+		FILE *itemFile = openFile(folder, san(cur->fields[FIELD_TITLE]), fileExt);
 
 		// Do not overwrite files
 		if (!ftell(itemFile)) {
-			outputHtml(cur, itemFile);
+			outputFunction(cur, itemFile);
 			newItems++;
 		}
 

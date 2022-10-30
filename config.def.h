@@ -49,3 +49,13 @@ static const int maxRedirs = 10;
 // Restrict allowed protocols for curl using a bitmask.
 // For more information: https://curl.se/libcurl/c/CURLOPT_PROTOCOLS.html
 static const int curlProtocols = CURLPROTO_HTTPS | CURLPROTO_HTTP;
+
+enum outputFormats {
+	OUTPUT_HTML,
+#ifdef JSON
+	OUTPUT_JSON,
+#endif // JSON
+};
+
+// When saving, sets the format of the saved file.
+static const enum outputFormats outputFormat = OUTPUT_HTML;

@@ -1,8 +1,10 @@
 MinRSS
 ======
-MinRSS is an RSS/Atom feed reader for Linux inspired by suckless.org's
-IRC clients ii and sic. Instead of presenting articles as entries
-in a menu, it saves them as files in folders.
+MinRSS is an RSS/Atom feed reader for Linux inspired by suckless.org's IRC
+clients ii and sic. Instead of presenting articles as entries in a menu, it
+saves them as files in folders.
+
+These files can either be formatted as HTML, or as JSON to help with scripting.
 
 rss
 |--news
@@ -15,6 +17,9 @@ rss
 Requirements
 ------------
 You need libcurl and libxml2 to compile MinRSS.
+
+json-c is required for JSON output. To disable this feature, comment out the
+relevant lines in Makefile.
 
 Installation
 ------------

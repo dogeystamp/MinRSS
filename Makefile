@@ -1,15 +1,20 @@
 PREFIX = ~/.local
 VERSION = 0.2
 
-# CC = cc
+PKG_CONFIG = pkg-config
+
+# Comment out if JSON output support isn't needed
+JSONLIBS = `$(PKG_CONFIG) --libs json-c`
+JSONINCS = `$(PKG_CONFIG) --cflags json-c`
+JSONFLAG = -DJSON
+
+CURL_CONFIG = curl-config
 SRC = minrss.c util.c net.c handlers.c
 OBJ =  $(SRC:.c=.o)
-PKG_CONFIG = pkg-config
-CURL_CONFIG = curl-config
-INCS = `$(PKG_CONFIG) --cflags libxml-2.0` `$(CURL_CONFIG) --cflags`
-LIBS = `$(PKG_CONFIG) --libs libxml-2.0` `$(CURL_CONFIG) --libs`
+INCS = `$(PKG_CONFIG) --cflags libxml-2.0` `$(CURL_CONFIG) --cflags` $(JSONINC)
+LIBS = `$(PKG_CONFIG) --libs libxml-2.0` `$(CURL_CONFIG) --libs` $(JSONLIBS)
 WARN = -Wall -Wpedantic -Wextra
-CFLAGS = $(INCS) $(LIBS) $(WARN) -DVERSION=\"$(VERSION)\"
+CFLAGS = $(INCS) $(LIBS) $(WARN) -DVERSION=\"$(VERSION)\" $(JSONFLAG)
 
 all: config.h minrss
 
