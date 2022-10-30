@@ -85,7 +85,7 @@ FILE *
 openFile(const char *folder, char *fileName, char *fileExt)
 {
 	// [folder]/[fileName][fileExt]
-	// caller's responsibility to sanitize names
+	// caller's responsibility to sanitize names, but frees fileName
 	
 	if (!folder) {
 		logMsg(1, "NULL folder");

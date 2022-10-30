@@ -13,6 +13,7 @@ enum fields {
 	FIELD_END
 };
 enum numFields {
+	// currently unimplemented
 	NUM_ENCLOSURE_SIZE,
 
 	NUM_END
