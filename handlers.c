@@ -53,7 +53,7 @@ atomLink(itemStruct *item, xmlNodePtr node)
 		return 1;
 	}
 
-	if (!rel) {
+	if (!rel || propIs(rel, "alternate")) {
 		copyField(item, FIELD_LINK, (char *)href);
 	} else if (propIs(rel, "enclosure")) {
 		copyField(item, FIELD_ENCLOSURE_URL, (char *)href);
