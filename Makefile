@@ -1,5 +1,5 @@
 PREFIX = ~/.local
-VERSION = 0.1
+VERSION = 0.2
 
 # CC = cc
 SRC = minrss.c util.c net.c handlers.c
