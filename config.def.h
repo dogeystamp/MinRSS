@@ -14,6 +14,7 @@ You should have received a copy of the GNU General Public License along with thi
 typedef struct {
 	const char *url;
 	const char *feedName;
+	const time_t update;
 } linkStruct;
 
 /* Example link:
@@ -21,6 +22,8 @@ typedef struct {
 		.url = "https://example.com/rss/feed.rss",
 		// This will be used as the folder name for the feed.
 		.feedName = "examplefeed",
+		// The time in seconds between checks for updates.
+		.update = 3600,
 	},
 */
 
@@ -28,6 +31,7 @@ static const linkStruct links[] = {
 	{
 		.url = "",
 		.feedName = "",
+		.update = 0,
 	},
 };
 
