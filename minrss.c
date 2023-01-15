@@ -13,6 +13,8 @@ You should have received a copy of the GNU General Public License along with thi
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <time.h>
+#include <utime.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xmlreader.h>
@@ -215,9 +217,19 @@ main(int argc, char *argv[])
 	outputStruct outputs[LEN(links)];
 	memset(outputs, 0, sizeof(outputs));
 
+	time_t timeNow = time(NULL);
+
 	for (i = 0; i < LEN(links); i++) {
+		struct stat feedDir;
+
 		if (links[0].url[0] == '\0')
 			logMsg(0, "No feeds, add them in config.def.h\n");
+
+		if (stat(links[i].feedName, &feedDir) == 0) {
+			time_t deltaTime = timeNow - feedDir.st_atim.tv_sec;
+			if (deltaTime < links[i].update)
+				continue;
+		}
 
 		logMsg(4, "Requesting %s\n", links[i].url);
 		createRequest(links[i].url, &outputs[i]);
@@ -231,7 +243,17 @@ main(int argc, char *argv[])
 		logMsg(5, "Parsing %s\n", links[i].url);
 
 		if (outputs[i].buffer && outputs[i].buffer[0]) {
-			readDoc(outputs[i].buffer, links[i].feedName, itemAction);
+			if (readDoc(outputs[i].buffer, links[i].feedName, itemAction) == 0) {
+				struct stat feedDir;
+
+				if (stat(links[i].feedName, &feedDir) == 0) {
+					struct utimbuf update;
+
+					update.actime = timeNow;
+					update.modtime = feedDir.st_mtim.tv_sec;
+					utime(links[i].feedName, &update);
+				}
+			}
 			free(outputs[i].buffer);
 		}
 	}
