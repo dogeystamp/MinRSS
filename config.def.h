@@ -49,9 +49,9 @@ static const int logLevel = 2;
 // Use 0 to disable redirects, and -1 for no limit.
 static const int maxRedirs = 10;
 
-// Restrict allowed protocols for curl using a bitmask.
-// For more information: https://curl.se/libcurl/c/CURLOPT_PROTOCOLS.html
-static const int curlProtocols = CURLPROTO_HTTPS | CURLPROTO_HTTP;
+// Restrict allowed protocols for curl.
+// For more information: https://curl.se/libcurl/c/CURLOPT_PROTOCOLS_STR.html
+static const char curlProtocols[] = "http,https";
 
 enum outputFormats {
 	OUTPUT_HTML,
