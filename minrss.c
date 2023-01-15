@@ -226,7 +226,7 @@ main(int argc, char *argv[])
 			logMsg(0, "No feeds, add them in config.def.h\n");
 
 		if (stat(links[i].feedName, &feedDir) == 0) {
-			time_t deltaTime = timeNow - feedDir.st_atim.tv_sec;
+			time_t deltaTime = timeNow - feedDir.st_atime;
 			if (deltaTime < links[i].update)
 				continue;
 		}
@@ -250,7 +250,7 @@ main(int argc, char *argv[])
 					struct utimbuf update;
 
 					update.actime = timeNow;
-					update.modtime = feedDir.st_mtim.tv_sec;
+					update.modtime = feedDir.st_mtime;
 					utime(links[i].feedName, &update);
 				}
 			}

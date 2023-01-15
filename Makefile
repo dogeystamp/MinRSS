@@ -14,7 +14,7 @@ OBJ =  $(SRC:.c=.o)
 INCS = `$(PKG_CONFIG) --cflags libxml-2.0` `$(CURL_CONFIG) --cflags` $(JSONINC)
 LIBS = `$(PKG_CONFIG) --libs libxml-2.0` `$(CURL_CONFIG) --libs` $(JSONLIBS)
 WARN = -Wall -Wpedantic -Wextra
-CFLAGS = $(INCS) $(LIBS) $(WARN) -DVERSION=\"$(VERSION)\" $(JSONFLAG)
+CFLAGS = -std=c99 $(INCS) $(LIBS) $(WARN) -DVERSION=\"$(VERSION)\" $(JSONFLAG)
 
 all: config.h minrss
 
