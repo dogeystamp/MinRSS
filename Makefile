@@ -12,8 +12,8 @@ SRC = minrss.c util.c net.c handlers.c
 OBJ =  $(SRC:.c=.o)
 INCS = `$(PKG_CONFIG) --cflags libxml-2.0` `$(PKG_CONFIG) --cflags libcurl` $(JSONINC)
 LIBS = `$(PKG_CONFIG) --libs libxml-2.0` `$(PKG_CONFIG) --libs libcurl` $(JSONLIBS)
-WARN = -Wall -Wpedantic -Wextra
-CFLAGS = -std=c99 $(INCS) $(LIBS) $(WARN) -DVERSION=\"$(VERSION)\" $(JSONFLAG)
+WFLAGS = -Wall -Wpedantic -Wextra
+CFLAGS = -std=c99 $(INCS) $(WFLAGS) -DVERSION=\"$(VERSION)\" $(JSONFLAG)
 
 all: config.h minrss
 
@@ -24,10 +24,10 @@ config.h:
 	cp config.def.h config.h
 
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) -c $< -o $@
 
 minrss: $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $(OBJ)
+	$(CC) -o $@ $(OBJ) $(LIBS)
 
 clean:
 	rm -f minrss $(OBJ)
