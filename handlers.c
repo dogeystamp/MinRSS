@@ -51,6 +51,11 @@ allocField(char **field, char *str)
 void
 copyField(itemStruct *item, enum fields field, char *str)
 {
+	if (!str) {
+		logMsg(1, "Attempted to assign a null pointer to a field!\n");
+		return;
+	}
+
 	allocField(&item->fields[field], str);
 }
 
