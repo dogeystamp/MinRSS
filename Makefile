@@ -8,11 +8,10 @@ JSONLIBS = `$(PKG_CONFIG) --libs json-c`
 JSONINCS = `$(PKG_CONFIG) --cflags json-c`
 JSONFLAG = -DJSON
 
-CURL_CONFIG = curl-config
 SRC = minrss.c util.c net.c handlers.c
 OBJ =  $(SRC:.c=.o)
-INCS = `$(PKG_CONFIG) --cflags libxml-2.0` `$(CURL_CONFIG) --cflags` $(JSONINC)
-LIBS = `$(PKG_CONFIG) --libs libxml-2.0` `$(CURL_CONFIG) --libs` $(JSONLIBS)
+INCS = `$(PKG_CONFIG) --cflags libxml-2.0` `$(PKG_CONFIG) --cflags libcurl` $(JSONINC)
+LIBS = `$(PKG_CONFIG) --libs libxml-2.0` `$(PKG_CONFIG) --libs libcurl` $(JSONLIBS)
 WARN = -Wall -Wpedantic -Wextra
 CFLAGS = -std=c99 $(INCS) $(LIBS) $(WARN) -DVERSION=\"$(VERSION)\" $(JSONFLAG)
 
