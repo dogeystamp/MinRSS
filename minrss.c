@@ -41,7 +41,7 @@ parseXml(xmlDocPtr doc,
 	// Parse the XML in a single document.
 
 	if (!feedName || !feedName[0]) {
-		logMsg(1, "Missing feed name, please set one.\n");
+		logMsg(LOG_ERROR, "Missing feed name, please set one.\n");
 		return 1;
 	}
 
@@ -50,7 +50,7 @@ parseXml(xmlDocPtr doc,
 	rootNode = xmlDocGetRootElement(doc);
 
 	if (!rootNode) {
-		logMsg(1, "Empty document for feed.\n");
+		logMsg(LOG_ERROR, "Empty document for feed.\n");
 		return 1;
 	}
 
@@ -65,7 +65,7 @@ parseXml(xmlDocPtr doc,
 
 	
 	if (format == NONE) {
-		logMsg(1, "XML document is not an RSS or Atom feed.\n");
+		logMsg(LOG_ERROR, "XML document is not an RSS or Atom feed.\n");
 		return 1;
 	}
 
@@ -79,7 +79,7 @@ parseXml(xmlDocPtr doc,
 				cur = cur->next;
 
 			if (!cur || !tagIs(cur, "channel")) {
-				logMsg(1, "Invalid RSS syntax.\n");
+				logMsg(LOG_ERROR, "Invalid RSS syntax.\n");
 				return 1;
 			}
 
@@ -93,7 +93,7 @@ parseXml(xmlDocPtr doc,
 			break;
 
 		default:
-			logMsg(1, "Missing starting tag for format\n");
+			logMsg(LOG_ERROR, "Missing starting tag for format\n");
 			return 1;
 	}
 
@@ -113,7 +113,7 @@ parseXml(xmlDocPtr doc,
 				isArticle = tagIs(cur, "entry");
 				break;
 			default:
-				logMsg(1, "Missing article tag name for format\n");
+				logMsg(LOG_ERROR, "Missing article tag name for format\n");
 				return 1;
 		}
 
@@ -168,7 +168,7 @@ parseXml(xmlDocPtr doc,
 	int stat = mkdir((const char* ) feedName, S_IRWXU);
 
 	if (!stat && errno && errno != EEXIST) {
-		logMsg(1, "Error creating directory for feed.\n");
+		logMsg(LOG_ERROR, "Error creating directory for feed.\n");
 		return 1;
 	}
 
@@ -188,14 +188,14 @@ readDoc(char *content,
 
 	doc = xmlReadMemory(content, strlen(content), "noname.xml", NULL, 0);
 	if (!doc) {
-		logMsg(1, "XML parser error.\n");
+		logMsg(LOG_ERROR, "XML parser error.\n");
 		return 1;
 	}
 
 	int stat = parseXml(doc, feedName, itemAction);
 
 	if (stat)
-		logMsg(1, "Skipped feed %s due to errors.\n", feedName);
+		logMsg(LOG_ERROR, "Skipped feed %s due to errors.\n", feedName);
 
 	xmlFreeDoc(doc);
 
@@ -206,9 +206,9 @@ int
 main(int argc, char *argv[])
 {
 	if (argc == 2 && !strcmp("-v", argv[1]))
-		logMsg(0, "MinRSS %s\n", VERSION);
+		logMsg(LOG_FATAL, "MinRSS %s\n", VERSION);
 	else if (argc != 1)
-		logMsg(0, "Usage: minrss [-v]\n");
+		logMsg(LOG_FATAL, "Usage: minrss [-v]\n");
 
 	unsigned int i = 0;
 
@@ -223,7 +223,7 @@ main(int argc, char *argv[])
 		struct stat feedDir;
 
 		if (links[0].url[0] == '\0')
-			logMsg(0, "No feeds, add them in config.def.h\n");
+			logMsg(LOG_FATAL, "No feeds, add them in config.def.h\n");
 
 		if (stat(links[i].feedName, &feedDir) == 0) {
 			time_t deltaTime = timeNow - feedDir.st_atime;
@@ -231,16 +231,16 @@ main(int argc, char *argv[])
 				continue;
 		}
 
-		logMsg(4, "Requesting %s\n", links[i].url);
+		logMsg(LOG_VERBOSE, "Requesting %s\n", links[i].url);
 		createRequest(links[i].url, &outputs[i]);
 	}
 
 	performRequests(finish);
 
-	logMsg(3, "Finished downloads.\n");
+	logMsg(LOG_INFO, "Finished downloads.\n");
 
 	for (i = 0; i < LEN(links); i++) {
-		logMsg(5, "Parsing %s\n", links[i].url);
+		logMsg(LOG_VERBOSE, "Parsing %s\n", links[i].url);
 
 		if (outputs[i].buffer && outputs[i].buffer[0]) {
 			if (readDoc(outputs[i].buffer, links[i].feedName, itemAction) == 0) {
@@ -258,7 +258,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	logMsg(3, "Finished parsing feeds.\n");
+	logMsg(LOG_INFO, "Finished parsing feeds.\n");
 
 	return 0;
 }

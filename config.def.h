@@ -35,15 +35,16 @@ static const linkStruct links[] = {
 	},
 };
 
-/*
- * 0: Fatal errors
- * 1: Errors
- * 2: Normal output
- * 3: Info messages
- * 4: Verbose mode
-*/
+enum logLevels {
+	LOG_FATAL,
+	LOG_ERROR,
+	LOG_OUTPUT,
+	LOG_INFO,
+	LOG_VERBOSE,
+};
 
-static const int logLevel = 2;
+// Print all messages at least as important as this level.
+static const int logLevel = LOG_OUTPUT;
 
 // Set the maximum amount of redirects curl will follow.
 // Use 0 to disable redirects, and -1 for no limit.

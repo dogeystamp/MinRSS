@@ -24,7 +24,7 @@ logMsg(int lvl, char *msg, ...)
 	va_start(args, msg);
 
 	if (lvl <= logLevel) {
-		if (lvl == 2) {
+		if (lvl == LOG_OUTPUT) {
 			vfprintf(stdout, msg, args);
 		} else {
 			fprintf(stderr, "minrss: ");
@@ -44,7 +44,7 @@ ecalloc(size_t nmemb, size_t size)
 	void *p = calloc(nmemb, size);
 
 	if (!p)
-		logMsg(0, "Error allocating memory.\n");
+		logMsg(LOG_FATAL, "Error allocating memory.\n");
 
 	return p;
 }
@@ -55,7 +55,7 @@ erealloc(void *p, size_t size)
 	p = realloc(p, size);
 
 	if (!p)
-		logMsg(0, "Error reallocating memory.\n");
+		logMsg(LOG_FATAL, "Error reallocating memory.\n");
 
 	return p;
 }

@@ -52,7 +52,7 @@ void
 copyField(itemStruct *item, enum fields field, char *str)
 {
 	if (!str) {
-		logMsg(1, "Attempted to assign a null pointer to a field!\n");
+		logMsg(LOG_ERROR, "Attempted to assign a null pointer to a field!\n");
 		return;
 	}
 
@@ -66,7 +66,7 @@ atomLink(itemStruct *item, xmlNodePtr node)
 	xmlChar *rel = xmlGetProp(node, (xmlChar *) "rel");
 
 	if (!href) {
-		logMsg(1, "Invalid link tag.\n");
+		logMsg(LOG_ERROR, "Invalid link tag.\n");
 		if (rel)
 			xmlFree(rel);
 		return 1;
@@ -89,7 +89,7 @@ rssEnclosure(itemStruct *item, xmlNodePtr node)
 {
 	xmlChar *href = xmlGetProp(node, (xmlChar *) "url");
 	if (!href) {
-		logMsg(1, "Invalid enclosure URL.\n");
+		logMsg(LOG_ERROR, "Invalid enclosure URL.\n");
 		return 1;
 	}
 
@@ -107,13 +107,13 @@ openFile(const char *folder, char *fileName, char *fileExt)
 	// caller's responsibility to sanitize names, but frees fileName
 	
 	if (!folder) {
-		logMsg(1, "NULL folder");
+		logMsg(LOG_ERROR, "NULL folder");
 		return NULL;
 	} else if (!fileName) {
-		logMsg(1, "NULL file base name");
+		logMsg(LOG_ERROR, "NULL file base name");
 		return NULL;
 	} else if (!fileExt) {
-		logMsg(1, "NULL file extension");
+		logMsg(LOG_ERROR, "NULL file extension");
 		return NULL;
 	}
 
@@ -129,7 +129,7 @@ openFile(const char *folder, char *fileName, char *fileExt)
 	if (fileName[0])
 		filePath = ecalloc(pathLen, sizeof(char));
 	else {
-		logMsg(1, "Invalid filename.\n");
+		logMsg(LOG_ERROR, "Invalid filename.\n");
 		return NULL;
 	}
 
@@ -220,7 +220,7 @@ itemAction(itemStruct *item, const char *folder)
 #endif //JSON
 	   		
 			default:
-				logMsg(0, "Output format is invalid.");
+				logMsg(LOG_FATAL, "Output format is invalid.");
 				break;
 		}
 		
@@ -238,7 +238,7 @@ itemAction(itemStruct *item, const char *folder)
 	}
 
 	if (newItems)
-		logMsg(2, "%s : %d new articles\n", folder, newItems);
+		logMsg(LOG_OUTPUT, "%s : %d new articles\n", folder, newItems);
 }
 
 void
@@ -247,9 +247,9 @@ finish(char *url, long responseCode)
 	// Executed after a download finishes
 
 	if (responseCode == 200)
-		logMsg(4, "Finished downloading %s\n", url);
+		logMsg(LOG_VERBOSE, "Finished downloading %s\n", url);
 	else if (!responseCode)
-		logMsg(1, "Can not reach %s: ensure the protocol is enabled and the site is accessible.\n", url);
+		logMsg(LOG_ERROR, "Can not reach %s: ensure the protocol is enabled and the site is accessible.\n", url);
 	else
-		logMsg(1, "HTTP %ld for %s\n", responseCode, url);
+		logMsg(LOG_ERROR, "HTTP %ld for %s\n", responseCode, url);
 }

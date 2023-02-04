@@ -60,14 +60,14 @@ createRequest(const char* url, outputStruct *output)
 	CURL *requestHandle = curl_easy_init();
 
 	if (!requestHandle)
-		logMsg(0, "Can't initialise curl.\n");
+		logMsg(LOG_FATAL, "Can't initialise curl.\n");
 
 	output->buffer = NULL;
 	output->size = 0;
 
 	CURLcode stat;
 	if (curl_easy_setopt(requestHandle, CURLOPT_URL, url)) {
-		logMsg(1, "Invalid URL: %s\n", url);
+		logMsg(LOG_ERROR, "Invalid URL: %s\n", url);
 	}
 
 	stat = curl_easy_setopt(requestHandle, CURLOPT_WRITEFUNCTION, writeCallback);
