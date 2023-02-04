@@ -220,11 +220,23 @@ itemAction(itemStruct *item, const char *folder)
 #endif //JSON
 	   		
 			default:
-				logMsg(LOG_FATAL, "Output format is invalid.");
+				logMsg(LOG_FATAL, "Output format is invalid.\n");
 				break;
 		}
 		
 		FILE *itemFile = openFile(folder, san(cur->fields[FIELD_TITLE]), fileExt);
+
+		if (!itemFile) {
+			logMsg(LOG_ERROR, "Could not open file '%s/%s/%s'.\n",
+					folder,
+					san(cur->fields[FIELD_TITLE]),
+					fileExt
+				);
+
+			cur = cur->next;
+			freeItem(prev);
+			continue;
+		}
 
 		// Do not overwrite files
 		if (!ftell(itemFile)) {
