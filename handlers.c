@@ -104,7 +104,7 @@ FILE *
 openFile(const char *folder, char *fileName, char *fileExt)
 {
 	// [folder]/[fileName][fileExt]
-	// caller's responsibility to sanitize names, but frees fileName
+	// caller's responsibility to sanitize names and free fileName
 	
 	if (!folder) {
 		logMsg(LOG_ERROR, "NULL folder");
@@ -143,7 +143,6 @@ openFile(const char *folder, char *fileName, char *fileExt)
 
 	FILE *itemFile = fopen(filePath, "a");
 	free (filePath);
-	free (fileName);
 
 	return itemFile;
 }
@@ -191,6 +190,62 @@ outputJson(itemStruct *item, FILE *f)
 }
 #endif // JSON
 
+int
+processItem(itemStruct *item, const char *folder)
+{
+	// Returns 1 if the article is new, 0 if not, -1 for error.
+
+	int ret = 0;
+
+	char fileExt[10];
+	void (*outputFunction)(itemStruct *, FILE *);
+
+	switch (outputFormat) {
+		case OUTPUT_HTML:
+			memcpy(fileExt, ".html", 6);
+			outputFunction = &outputHtml;
+			break;
+#ifdef JSON
+		case OUTPUT_JSON:
+			memcpy(fileExt, ".json", 6);
+			outputFunction = &outputJson;
+			break;
+#endif //JSON
+		
+		default:
+			logMsg(LOG_FATAL, "Output format is invalid.\n");
+			return -1;
+	}
+	
+	char *basename = san(item->fields[FIELD_TITLE]);
+
+	FILE *itemFile = openFile(folder, basename, fileExt);
+
+	if (!itemFile) {
+		logMsg(LOG_ERROR, "Could not open file '%s/%s/%s'.\n",
+				folder,
+				basename,
+				fileExt
+			);
+
+		ret = -1;
+		goto cleanup_basename;
+	}
+
+	// Do not overwrite files
+	if (!ftell(itemFile)) {
+		outputFunction(item, itemFile);
+		ret = 1;
+		if (summaryFormat == SUMMARY_FILES)
+			logMsg(LOG_OUTPUT, "%s%c%s%s\n", folder, fsep(), basename, fileExt);
+	}
+
+	fclose(itemFile);
+cleanup_basename:
+	free(basename);
+	return ret;
+}
+
 void
 itemAction(itemStruct *item, const char *folder)
 {
@@ -203,54 +258,22 @@ itemAction(itemStruct *item, const char *folder)
 
 	while (cur) {
 		prev = cur;
-
-		char fileExt[10];
-		void (*outputFunction)(itemStruct *, FILE *);
-
-		switch (outputFormat) {
-			case OUTPUT_HTML:
-				memcpy(fileExt, ".html", 6);
-				outputFunction = &outputHtml;
-				break;
-#ifdef JSON
-			case OUTPUT_JSON:
-				memcpy(fileExt, ".json", 6);
-				outputFunction = &outputJson;
-				break;
-#endif //JSON
-	   		
-			default:
-				logMsg(LOG_FATAL, "Output format is invalid.\n");
-				break;
-		}
-		
-		FILE *itemFile = openFile(folder, san(cur->fields[FIELD_TITLE]), fileExt);
-
-		if (!itemFile) {
-			logMsg(LOG_ERROR, "Could not open file '%s/%s/%s'.\n",
-					folder,
-					san(cur->fields[FIELD_TITLE]),
-					fileExt
-				);
-
-			cur = cur->next;
-			freeItem(prev);
-			continue;
-		}
-
-		// Do not overwrite files
-		if (!ftell(itemFile)) {
-			outputFunction(cur, itemFile);
+		int res = processItem(cur, folder);
+		if (res == 1)
 			newItems++;
-		}
-
-		fclose(itemFile);
 		cur = cur->next;
 		freeItem(prev);
 	}
 
-	if (newItems)
-		logMsg(LOG_OUTPUT, "%s : %d new articles\n", folder, newItems);
+	switch (summaryFormat) {
+		case SUMMARY_HUMAN_READABLE:
+			if (newItems)
+				logMsg(LOG_OUTPUT, "%s : %d new articles\n", folder, newItems);
+			break;
+		case SUMMARY_FILES:
+			// print output after saving each file
+			break;
+	}
 }
 
 void

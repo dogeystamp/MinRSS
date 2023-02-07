@@ -63,3 +63,30 @@ enum outputFormats {
 
 // When saving, sets the format of the saved file.
 static const enum outputFormats outputFormat = OUTPUT_HTML;
+
+// Controls what is printed to stdout after each update.
+enum summaryFormats {
+/*
+	Prints the number of new articles for each feed.
+	Example:
+
+		feed1: 2 new articles
+		feed2: 2 new articles
+
+*/
+	SUMMARY_HUMAN_READABLE,
+
+/*
+	Prints relative paths of new articles.
+	Example:
+
+		feed1/article1.json
+		feed1/article2.json
+		feed2/something.json
+		feed2/otherthing.json
+
+*/
+	SUMMARY_FILES,
+};
+
+static const enum summaryFormats summaryFormat = SUMMARY_HUMAN_READABLE;
