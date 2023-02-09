@@ -50,11 +50,46 @@ in order to successfully run MinRSS.
 	};
 
 
-Using MinRSS
+Manual usage
 ------------
-Make a directory to store your RSS feeds, then cd into it. Then, enter 
-the minrss command to download the RSS feeds. Your feeds will be 
-available as folders in your current working directory.
+If you compile with OUTPUT_HTML (as is default), you can read feeds with just
+the 'minrss' binary, basic shell utilities and (preferably) a browser of any
+kind.
+
+Make a directory to store your RSS feeds, then cd into it. Then, run the minrss
+binary to download all articles.
+
+Each configured feed will now appear as a folder, and articles as HTML files
+within them. You can open the files in a browser to see the summary text, and
+also follow the link to see the full article.
+
+To see which files are new, use 'ls -t' or compile with SUMMARY_FILES.
+
+It is important to note that MinRSS does not download the full text of each
+article, but only the summary. If you wish to archive the full text for offline
+reading, consider writing a script for it.
+
+Wrapper scripts
+---------------
+The wrapper script contrib/mrss.sh is provided with MinRSS as an example.
+
+To install it, run the following:
+	
+	cp contrib/mrss.sh ~/.local/bin/mrss
+	chmod 755 ~/.local/bin/mrss
+
+The script requires compiling with configuration options OUTPUT_JSON and
+SUMMARY_FILES, as well as having jq and xdg-open installed.
+
+By default, mrss sets up a directory at ~/rss/ to store all feeds. To change
+this, set MRSS_DIR.
+
+'mrss update' will check feeds for new articles and download them. Symlinks to
+new articles are also stored in ~/rss/new/.
+
+'mrss read' can be used on article files to open them in a browser or mpv.
+
+Run 'mrss --help' for further usage help.
 
 Compatibility
 -------------
