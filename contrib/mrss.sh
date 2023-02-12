@@ -9,6 +9,9 @@ if [ -z "$MRSS_DIR" ]; then
 	MRSS_DIR="$HOME/rss"
 fi
 mkdir -p "$MRSS_DIR"
+if [ -z "$MRSS_NEWDIR" ]; then
+	MRSS_NEWDIR="$MRSS_DIR/new"
+fi
 
 sub_help() {
 	echo "usage:"
@@ -25,6 +28,9 @@ sub_help() {
 	echo " - minrss compiled with:"
 	echo "     * OUTPUT_JSON"
 	echo "     * SUMMARY_FILES"
+	echo
+	echo "Set MRSS_DIR to control where feeds are downloaded, and MRSS_NEWDIR for new articles."
+	echo "By default, MRSS_DIR=~/rss, and MRSS_NEWDIR=~/rss/new."
 }
 
 sub_update() {
@@ -33,15 +39,15 @@ sub_update() {
 		while read -r ARTICLE; do
 			DIRNAME="$(dirname "$ARTICLE")"
 			BASENAME="$(basename "$ARTICLE")"
-			mkdir -p "$MRSS_DIR"/new/"$DIRNAME"
-			ln -sr "$MRSS_DIR"/"$ARTICLE" "$MRSS_DIR"/new/"$ARTICLE"
+			mkdir -p "$MRSS_NEWDIR"/"$DIRNAME"
+			ln -sr "$MRSS_DIR"/"$ARTICLE" "$MRSS_NEWDIR"/"$ARTICLE"
 		done
 	}
 }
 
 sub_purge() {
 	cd "$MRSS_DIR"
-	rm -r "$MRSS_DIR"/new/*
+	rm -r "$MRSS_NEWDIR"/*
 }
 
 sub_link() {
