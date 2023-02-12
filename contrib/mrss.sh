@@ -60,22 +60,35 @@ sub_link() {
 
 list_read() {
 	VID=""
+	VIDFILES=""
 
 	while read -r art; do
 		LINK="$(sub_link "$art")"
 		if [ ! -z "$(printf "%s" "$LINK" | grep 'youtube.com\|odycdn\|simplecastaudio\|podcasts\|twitch')" ]; then
 			VID="$VID$LINK "
+			if [ -n "$VIDFILES" ]; then
+				VIDFILES=$(printf "%s\n%s" "$VIDFILES" "$art")
+			else
+				VIDFILES="$art"
+			fi
 		else
 			xdg-open $LINK 2> /dev/null &
-		fi
-		if [ -h "$art" ]; then
-			# remove symlinks from new/
-			rm "$art"
+			if [ -h "$art" ]; then
+				# remove symlinks from new/
+				rm "$art"
+			fi
 		fi
 	done
 
 	if [ -n "$VID" ]; then
-		mpv $VID 2> /dev/null &
+		if mpv $VID 2> /dev/null; then
+			printf "%s" "$VIDFILES" | xargs -d "\n" rm
+		else
+			printf "\n%s%s%s\n" \
+				$blue \
+				"mrss: Non-zero return code from mpv, not marking video files as read" \
+				$normal
+		fi
 	fi
 }
 
