@@ -87,9 +87,13 @@ this, set MRSS_DIR.
 'mrss update' will check feeds for new articles and download them. Symlinks to
 new articles are also stored in ~/rss/new/.
 
-'mrss read' can be used on article files to open them in a browser or mpv.
+'mrss select' shows a CLI to view each file's content. It can either open the
+file, mark it as read or queue it for later.
 
-Run 'mrss --help' for further usage help.
+'mrss read' can be used on article files to open them in a browser or mpv,
+directly from the shell.
+
+Run 'mrss --help' for information about other subcommands.
 
 Compatibility
 -------------

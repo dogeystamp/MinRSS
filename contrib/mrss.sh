@@ -5,6 +5,9 @@ set -e
 scriptname=$0
 subcmd=$1
 
+blue=$(tput setaf 4)
+normal=$(tput sgr0)
+
 if [ -z "$MRSS_DIR" ]; then
 	MRSS_DIR="$HOME/rss"
 fi
@@ -55,15 +58,15 @@ sub_link() {
 	cat "$@" | jq -r '.enclosure.link // .link'
 }
 
-sub_read() {
+list_read() {
 	VID=""
 
-	for art in "$@"; do
+	while read -r art; do
 		LINK="$(sub_link "$art")"
 		if [ ! -z "$(printf "%s" "$LINK" | grep 'youtube.com\|odycdn\|simplecastaudio\|podcasts\|twitch')" ]; then
 			VID="$VID$LINK "
 		else
-			xdg-open $LINK &
+			xdg-open $LINK 2> /dev/null &
 		fi
 		if [ -h "$art" ]; then
 			# remove symlinks from new/
@@ -72,8 +75,69 @@ sub_read() {
 	done
 
 	if [ -n "$VID" ]; then
-		mpv $VID
+		mpv $VID 2> /dev/null &
 	fi
+}
+
+sub_read() {
+	for art in "$@"; do
+		echo "$art"
+	done | list_read
+}
+
+sub_select() {
+	find "$MRSS_NEWDIR" -type l | (
+	while read -r ARTICLE; do
+		clear
+
+		if [ -n "$SKIPALL" ]; then
+			continue
+		fi
+
+		DIRNAME="$(basename $(dirname "$ARTICLE"))"
+		TITLE="$(cat "$ARTICLE" | jq -r '.title')"
+		DESC_TRUNC="$(cat "$ARTICLE" | jq -r '.description // ""' | w3m -dump -T text/html | head -n 20)"
+
+		printf "\nFeed '%s'\n" "$DIRNAME"
+		printf "\n%s%s%s\n" "$blue" "$TITLE" "$normal"
+
+		printf "\n%s\n" "$DESC_TRUNC"
+
+		printf "\n\n-----------------\n"
+		printf "\nq quit, r read, e queue article, f full summary, d mark read,\n"
+		printf "s skip, S skip all\n"
+
+		while true; do
+			printf "\n> "
+			read ans </dev/tty
+			case "$ans" in
+				q ) exit;;
+				r ) sub_read "$ARTICLE"; break;;
+				e )
+					if [ -n "$QUEUE" ]; then
+						QUEUE=$(printf "%s\n%s" "$QUEUE" "$ARTICLE")
+					else
+						QUEUE="$ARTICLE"
+					fi
+					break;;
+				f ) 
+				 cat "$ARTICLE" | jq -r '.description // ""' | w3m -o confirm_qq=false -T text/html
+				 ;;
+				d )
+					if [ -h "$ARTICLE" ]; then
+						rm "$ARTICLE"
+					fi
+					break;;
+				s ) break;;
+				S ) SKIPALL="y"; break;;
+				* ) break;;
+			esac
+		done
+	done &&
+	if [ -n "$QUEUE" ]; then
+		printf "%s\n" "$QUEUE" | list_read 
+	fi
+	)
 }
 
 case $subcmd in
