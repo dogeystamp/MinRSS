@@ -59,6 +59,10 @@ sub_read() {
 		else
 			xdg-open $LINK &
 		fi
+		if [ -h "$art" ]; then
+			# remove symlinks from new/
+			rm "$art"
+		fi
 	done
 
 	if [ -n "$VID" ]; then
