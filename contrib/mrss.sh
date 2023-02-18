@@ -99,18 +99,24 @@ sub_read() {
 }
 
 sub_select() {
-	find "$MRSS_NEWDIR" -type l | (
-	while read -r ARTICLE; do
-		clear
+	NEWARTS="$(find "$MRSS_NEWDIR" -type l)"
+	TOTAL_COUNT="$(printf "%s" "$NEWARTS" | wc -l)"
+	printf "%s" "$NEWARTS" | (
 
+	INDEX=0
+	while read -r ARTICLE; do
 		if [ -n "$SKIPALL" ]; then
 			continue
 		fi
+
+		INDEX=$((INDEX+1))
+		clear
 
 		DIRNAME="$(basename $(dirname "$ARTICLE"))"
 		TITLE="$(cat "$ARTICLE" | jq -r '.title')"
 		DESC_TRUNC="$(cat "$ARTICLE" | jq -r '.description // ""' | w3m -dump -T text/html | head -n 20)"
 
+		printf "\nItem %s/%s\n" "$INDEX" "$TOTAL_COUNT"
 		printf "\nFeed '%s'\n" "$DIRNAME"
 		printf "\n%s%s%s\n" "$blue" "$TITLE" "$normal"
 
