@@ -15,6 +15,10 @@ mkdir -p "$MRSS_DIR"
 if [ -z "$MRSS_NEWDIR" ]; then
 	MRSS_NEWDIR="$MRSS_DIR/new"
 fi
+if [ -z "$MRSS_WATCH_LATER" ]; then
+	MRSS_WATCH_LATER="$MRSS_DIR/watch-later"
+fi
+mkdir -p "$MRSS_WATCH_LATER"
 
 sub_help() {
 	echo "usage:"
@@ -23,6 +27,9 @@ sub_help() {
 	echo "commands:"
 	echo "  update               updates feeds"
 	echo "  read                 opens link from an article file in either a browser or mpv"
+	echo "  select               show each new article and prompt for an action;"
+	echo "                         you can run 'select new/feed' for a specific feed"
+	echo "                         or 'select watch-later'."
 	echo "  link                 print the article link from a .json file"
 	echo "  purge                purge new/ directory"
 	echo
@@ -34,6 +41,7 @@ sub_help() {
 	echo
 	echo "Set MRSS_DIR to control where feeds are downloaded, and MRSS_NEWDIR for new articles."
 	echo "By default, MRSS_DIR=~/rss, and MRSS_NEWDIR=~/rss/new."
+	echo "Use MRSS_WATCH_LATER to store articles for later viewing (default ~/rss/watchlater/.)"
 }
 
 sub_update() {
@@ -99,7 +107,12 @@ sub_read() {
 }
 
 sub_select() {
-	NEWARTS="$(find "$MRSS_NEWDIR" -type l)"
+	if [ -z "$1" ]; then
+		DIR="$MRSS_NEWDIR"
+	else
+		DIR="$MRSS_DIR/$1"
+	fi
+	NEWARTS="$(find "$DIR" -type l)"
 	TOTAL_COUNT="$(printf "%s" "$NEWARTS" | wc -l)"
 	printf "%s" "$NEWARTS" | (
 
@@ -124,7 +137,7 @@ sub_select() {
 
 		printf "\n\n-----------------\n"
 		printf "\nq quit, r read, e queue article, f full summary, d mark read,\n"
-		printf "s skip, S skip all\n"
+		printf "s skip, S skip all, w watch later\n"
 
 		while true; do
 			printf "\n> "
@@ -149,6 +162,11 @@ sub_select() {
 					break;;
 				s ) break;;
 				S ) SKIPALL="y"; break;;
+				w ) 
+					REALPATH="$(realpath "$ARTICLE")"
+					rm "$ARTICLE"
+					ln -sr "$REALPATH" "$MRSS_WATCH_LATER"/
+					break;;
 				* ) break;;
 			esac
 		done
