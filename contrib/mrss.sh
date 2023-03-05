@@ -5,9 +5,6 @@ set -e
 scriptname=$0
 subcmd=$1
 
-blue=$(tput setaf 4)
-normal=$(tput sgr0)
-
 if [ -z "$MRSS_DIR" ]; then
 	MRSS_DIR="$HOME/rss"
 fi
@@ -30,6 +27,7 @@ sub_help() {
 	echo "  select               show each new article and prompt for an action;"
 	echo "                         you can run 'select new/feed' for a specific feed"
 	echo "                         or 'select watch-later'."
+	echo "  fzf                  select articles to read using fzf"
 	echo "  link                 print the article link from a .json file"
 	echo "  purge                purge new/ directory"
 	echo
@@ -106,6 +104,22 @@ sub_read() {
 	done | list_read
 }
 
+sub_preview() {
+	blue=$(tput setaf 4)
+	normal=$(tput sgr0)
+
+	ARTICLE="$1"
+
+	DIRNAME="$(basename $(dirname "$ARTICLE"))"
+	TITLE="$(cat "$ARTICLE" | jq -r '.title')"
+	DESC_TRUNC="$(cat "$ARTICLE" | jq -r '.description // ""' | w3m -dump -T text/html | head -n 20)"
+
+	printf "\nFeed '%s'\n" "$DIRNAME"
+	printf "\n%s%s%s\n" "$blue" "$TITLE" "$normal"
+
+	printf "\n%s\n" "$DESC_TRUNC"
+}
+
 sub_select() {
 	if [ -z "$1" ]; then
 		DIR="$MRSS_NEWDIR"
@@ -124,16 +138,8 @@ sub_select() {
 
 		INDEX=$((INDEX+1))
 		clear
-
-		DIRNAME="$(basename $(dirname "$ARTICLE"))"
-		TITLE="$(cat "$ARTICLE" | jq -r '.title')"
-		DESC_TRUNC="$(cat "$ARTICLE" | jq -r '.description // ""' | w3m -dump -T text/html | head -n 20)"
-
 		printf "\nItem %s/%s\n" "$INDEX" "$TOTAL_COUNT"
-		printf "\nFeed '%s'\n" "$DIRNAME"
-		printf "\n%s%s%s\n" "$blue" "$TITLE" "$normal"
-
-		printf "\n%s\n" "$DESC_TRUNC"
+		sub_preview "$ARTICLE"
 
 		printf "\n\n-----------------\n"
 		printf "\nq quit, r read, e queue article, f full summary, d mark read,\n"
@@ -175,6 +181,19 @@ sub_select() {
 		printf "%s\n" "$QUEUE" | list_read 
 	fi
 	)
+}
+
+sub_fzf() {
+	if [ -z "$1" ]; then
+		DIR="$MRSS_NEWDIR"
+	else
+		DIR="$MRSS_DIR/$1"
+	fi
+	cd "$DIR"
+	NEWARTS="$(find . -type l)"
+	export -f sub_preview
+	printf "%s" "$NEWARTS" | fzf --disabled --marker='*' --multi --cycle --preview 'bash -c "sub_preview {}"' | \
+		list_read
 }
 
 case $subcmd in
