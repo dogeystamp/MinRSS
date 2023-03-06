@@ -23,13 +23,17 @@ sub_help() {
 	echo
 	echo "commands:"
 	echo "  update               updates feeds"
-	echo "  read                 opens link from an article file in either a browser or mpv"
 	echo "  select               show each new article and prompt for an action;"
 	echo "                         you can run 'select new/feed' for a specific feed"
 	echo "                         or 'select watch-later'."
-	echo "  fzf                  select articles to read using fzf"
-	echo "  link                 print the article link from a .json file"
-	echo "  purge                purge new/ directory"
+	echo "  fzf                  show articles using fzf"
+	echo "                         same usage as 'select'"
+	echo
+	echo "article commands (pass files as arguments):"
+	echo "  read                 opens link from an article file in either a browser or mpv"
+	echo "  link                 print the article link"
+	echo "  purge                mark an article read, or mark all articles read (if no args passed)"
+	echo "  watchlater           move articles to a watch-later directory"
 	echo
 	echo "The following is required to use this script:"
 	echo " - jq"
@@ -54,13 +58,32 @@ sub_update() {
 	}
 }
 
+list_purge() {
+	while read -r ARTICLE; do
+		if [ -h "$ARTICLE" ]; then
+			rm "$ARTICLE"
+		fi
+	done
+}
+
 sub_purge() {
-	cd "$MRSS_DIR"
-	rm -r "$MRSS_NEWDIR"/*
+	if [ -z "$@" ]; then
+		cd "$MRSS_DIR"
+		rm -r "$MRSS_NEWDIR"/*
+	else
+		for art in "$@"; do
+			printf "%s\n" "$art"
+		done | list_purge
+	fi
+}
+
+list_link() {
+	for art in "$@"; do
+		cat "$art" | jq -r '.enclosure.link // .link'
+	done
 }
 
 sub_link() {
-	# extract the link from a single article file
 	cat "$@" | jq -r '.enclosure.link // .link'
 }
 
@@ -79,16 +102,13 @@ list_read() {
 			fi
 		else
 			xdg-open $LINK 2> /dev/null &
-			if [ -h "$art" ]; then
-				# remove symlinks from new/
-				rm "$art"
-			fi
+			sub_purge "$art"
 		fi
 	done
 
 	if [ -n "$VID" ]; then
 		if mpv $VID 2> /dev/null; then
-			printf "%s" "$VIDFILES" | xargs -d "\n" rm
+			printf "%s" "$VIDFILES" | list_purge
 		else
 			printf "\n%s%s%s\n" \
 				$blue \
@@ -98,9 +118,23 @@ list_read() {
 	fi
 }
 
+list_watchlater() {
+	while read -r ARTICLE; do
+		REALPATH="$(realpath "$ARTICLE")"
+		sub_purge "$art"
+		ln -sr "$REALPATH" "$MRSS_WATCH_LATER"/
+	done
+}
+
+sub_watchlater() {
+	for art in "$@"; do
+		printf "%s\n" "$art"
+	done | list_watchlater
+}
+
 sub_read() {
 	for art in "$@"; do
-		echo "$art"
+		printf "%s\n" "$art"
 	done | list_read
 }
 
@@ -142,7 +176,7 @@ sub_select() {
 		sub_preview "$ARTICLE"
 
 		printf "\n\n-----------------\n"
-		printf "\nq quit, r read, e queue article, f full summary, d mark read,\n"
+		printf "\nq quit, r read, e queue article, f full summary, d purge (mark read),\n"
 		printf "s skip, S skip all, w watch later\n"
 
 		while true; do
@@ -162,16 +196,11 @@ sub_select() {
 				 cat "$ARTICLE" | jq -r '.description // ""' | w3m -o confirm_qq=false -T text/html
 				 ;;
 				d )
-					if [ -h "$ARTICLE" ]; then
-						rm "$ARTICLE"
-					fi
+					sub_purge "$ARTICLE"
 					break;;
 				s ) break;;
 				S ) SKIPALL="y"; break;;
-				w ) 
-					REALPATH="$(realpath "$ARTICLE")"
-					rm "$ARTICLE"
-					ln -sr "$REALPATH" "$MRSS_WATCH_LATER"/
+				w ) sub_watchlater "$ARTICLE"
 					break;;
 				* ) break;;
 			esac
@@ -190,10 +219,26 @@ sub_fzf() {
 		DIR="$MRSS_DIR/$1"
 	fi
 	cd "$DIR"
-	NEWARTS="$(find . -type l)"
-	export -f sub_preview
-	printf "%s" "$NEWARTS" | fzf --disabled --marker='*' --multi --cycle --preview 'bash -c "sub_preview {}"' | \
-		list_read
+	while true; do
+		NEWARTS="$(find . -type l)"
+		export -f sub_preview
+		SEL="$(printf "%s" "$NEWARTS" | fzf --disabled --marker='*' --multi --cycle --preview 'bash -c "sub_preview {}"')"
+		if [ -z "$SEL" ]; then
+			break
+		fi
+		clear
+		printf "\nselected %s article(s)\n" "$(printf "%s\n" "$SEL" | wc -l)"
+		printf "\nq quit, r read, d purge (mark read), D purge all, w watch later\n"
+		printf "\n> "
+		read -n 1 ans </dev/tty
+		case "$ans" in
+			q ) exit;;
+			r ) printf '%s\n' "$SEL" | list_read;;
+			D ) sub_purge; break;;
+			d ) printf '%s\n' "$SEL" | list_purge;;
+			w ) printf '%s\n' "$SEL" | list_watchlater;;
+		esac
+	done
 }
 
 case $subcmd in
