@@ -121,7 +121,7 @@ list_read() {
 list_watchlater() {
 	while read -r ARTICLE; do
 		REALPATH="$(realpath "$ARTICLE")"
-		sub_purge "$art"
+		sub_purge "$ARTICLE"
 		ln -sr "$REALPATH" "$MRSS_WATCH_LATER"/
 	done
 }
@@ -160,7 +160,7 @@ sub_select() {
 	else
 		DIR="$MRSS_DIR/$1"
 	fi
-	NEWARTS="$(find "$DIR" -type l)"
+	NEWARTS="$(find "$DIR" -type l -or -type f)"
 	TOTAL_COUNT="$(printf "%s" "$NEWARTS" | wc -l)"
 	printf "%s" "$NEWARTS" | (
 
@@ -220,7 +220,7 @@ sub_fzf() {
 	fi
 	cd "$DIR"
 	while true; do
-		NEWARTS="$(find . -type l)"
+		NEWARTS="$(find . -type l -or -type f)"
 		export -f sub_preview
 		SEL="$(printf "%s" "$NEWARTS" | fzf --disabled --marker='*' --multi --cycle --preview 'bash -c "sub_preview {}"')"
 		if [ -z "$SEL" ]; then
