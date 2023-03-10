@@ -222,7 +222,7 @@ sub_fzf() {
 	while true; do
 		NEWARTS="$(find . -type l -or -type f)"
 		export -f sub_preview
-		SEL="$(printf "%s" "$NEWARTS" | fzf --disabled --marker='*' --multi --cycle --preview 'bash -c "sub_preview {}"')"
+		SEL="$(printf "%s" "$NEWARTS" | fzf --marker='*' --multi --cycle --preview 'bash -c "sub_preview {}"')"
 		if [ -z "$SEL" ]; then
 			break
 		fi
