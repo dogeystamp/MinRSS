@@ -78,13 +78,29 @@ sub_purge() {
 }
 
 list_link() {
-	for art in "$@"; do
-		cat "$art" | jq -r '.enclosure.link // .link'
+	while read -r art; do
+		LINK="$(cat "$art" | jq -r '.link // ""')"
+		ENCLOSURE="$(cat "$art" | jq -r '.enclosure.link // ""')"
+		ENCLOSURE_TYPE="$(cat "$art" | jq -r '.enclosure.type // ""')"
+
+		if [ -z "$ENCLOSURE" ]; then
+			printf "%s\n" "$LINK"
+		else
+			if printf "%s" "$ENCLOSURE_TYPE" | grep --quiet "^audio/.*" ; then
+				# this is a podcast so use enclosure instead of link
+				printf "%s\n" "$ENCLOSURE"
+			else
+				# some people put random images in enclosure
+				printf "%s\n" "$LINK"
+			fi
+		fi
 	done
 }
 
 sub_link() {
-	cat "$@" | jq -r '.enclosure.link // .link'
+	for art in "$@"; do
+		printf "%s\n" "$art"
+	done | list_link
 }
 
 list_read() {
