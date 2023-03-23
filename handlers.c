@@ -76,6 +76,10 @@ atomLink(itemStruct *item, xmlNodePtr node)
 		copyField(item, FIELD_LINK, (char *)href);
 	} else if (propIs(rel, "enclosure")) {
 		copyField(item, FIELD_ENCLOSURE_URL, (char *)href);
+
+		xmlChar *enclosure_type = xmlGetProp(node, (xmlChar *) "type");
+		copyField(item, FIELD_ENCLOSURE_TYPE, (char *)enclosure_type);
+		xmlFree(enclosure_type);
 	}
 
 	xmlFree(href);
@@ -94,8 +98,11 @@ rssEnclosure(itemStruct *item, xmlNodePtr node)
 	}
 
 	copyField(item, FIELD_ENCLOSURE_URL, (char *)href);
-
 	xmlFree(href);
+
+	xmlChar *enclosure_type = xmlGetProp(node, (xmlChar *) "type");
+	copyField(item, FIELD_ENCLOSURE_TYPE, (char *)enclosure_type);
+	xmlFree(enclosure_type);
 	
 	return 0;
 }
@@ -156,6 +163,8 @@ outputHtml(itemStruct *item, FILE *f)
 		fprintf(f, "<a href=\"%s\">Link</a><br>\n", item->fields[FIELD_LINK]);
 	if (item->fields[FIELD_ENCLOSURE_URL])
 		fprintf(f, "<a href=\"%s\">Enclosure</a><br>\n", item->fields[FIELD_ENCLOSURE_URL]);
+	if (item->fields[FIELD_ENCLOSURE_TYPE])
+		fprintf(f, "Enclosure type: %s\n", item->fields[FIELD_ENCLOSURE_TYPE]);
 	if (item->fields[FIELD_DESCRIPTION])
 		fprintf(f, "%s", item->fields[FIELD_DESCRIPTION]);
 }
@@ -178,6 +187,10 @@ outputJson(itemStruct *item, FILE *f)
 		json_object *enclosure = json_object_new_object();
 		json_object_object_add(enclosure, "link",
 				json_object_new_string(item->fields[FIELD_ENCLOSURE_URL]));
+		if (item->fields[FIELD_ENCLOSURE_TYPE]) {
+			json_object_object_add(enclosure, "type",
+					json_object_new_string(item->fields[FIELD_ENCLOSURE_TYPE]));
+		}
 		json_object_object_add(root, "enclosure", enclosure);
 	}
 
