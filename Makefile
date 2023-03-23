@@ -20,11 +20,13 @@ all: config.h minrss
 debug: CFLAGS += -g3
 debug: config.h minrss 
 
-config.h:
-	cp config.def.h config.h
+$(OBJ): config.h
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
+
+config.h:
+	cp config.def.h config.h
 
 minrss: $(OBJ)
 	$(CC) -o $@ $(OBJ) $(LIBS)
