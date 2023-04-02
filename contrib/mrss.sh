@@ -125,7 +125,7 @@ list_read() {
 
 	if [ -n "$VID" ]; then
 		if mpv $VID 2> /dev/null; then
-			printf "%s" "$VIDFILES" | list_purge
+			printf "%s\n" "$VIDFILES" | list_purge
 		else
 			printf "\n%s%s%s\n" \
 				$blue \
