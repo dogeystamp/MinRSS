@@ -27,7 +27,8 @@ sub_help() {
 	echo "                         you can run 'select new/feed' for a specific feed"
 	echo "                         or 'select watch-later'."
 	echo "  fzf                  show articles using fzf"
-	echo "                         same usage as 'select'"
+	echo "                         use the commands /read (enter), /purge (ctrl-d), /purge-all (ctrl-alt-d),"
+	echo "                         /watch-later (ctrl-w) and /queue (ctrl-e)"
 	echo
 	echo "article commands (pass files as arguments):"
 	echo "  read                 opens link from an article file in either a browser or mpv"
@@ -134,20 +135,6 @@ list_read() {
 	fi
 }
 
-list_watchlater() {
-	while read -r ARTICLE; do
-		REALPATH="$(realpath "$ARTICLE")"
-		sub_purge "$ARTICLE"
-		ln -sr "$REALPATH" "$MRSS_WATCH_LATER"/
-	done
-}
-
-sub_watchlater() {
-	for art in "$@"; do
-		printf "%s\n" "$art"
-	done | list_watchlater
-}
-
 sub_read() {
 	for art in "$@"; do
 		printf "%s\n" "$art"
@@ -168,6 +155,20 @@ sub_preview() {
 	printf "\n%s%s%s\n" "$blue" "$TITLE" "$normal"
 
 	printf "\n%s\n" "$DESC_TRUNC"
+}
+
+list_watchlater() {
+	while read -r ARTICLE; do
+		REALPATH="$(realpath "$ARTICLE")"
+		sub_purge "$ARTICLE"
+		ln -sr "$REALPATH" "$MRSS_WATCH_LATER"/
+	done
+}
+
+sub_watchlater() {
+	for art in "$@"; do
+		printf "%s\n" "$art"
+	done | list_watchlater
 }
 
 sub_select() {
@@ -235,26 +236,60 @@ sub_fzf() {
 		DIR="$MRSS_DIR/$1"
 	fi
 	cd "$DIR"
+
 	while true; do
 		NEWARTS="$(find . -type l -or -type f)"
 		export -f sub_preview
-		SEL="$(printf "%s" "$NEWARTS" | fzf --marker='*' --multi --cycle --preview 'bash -c "sub_preview {}"')"
-		if [ -z "$SEL" ]; then
+		OUTPUT="$(printf "%s" "$NEWARTS" |
+			fzf --marker='*' --multi --print-query \
+				--preview 'bash -c "sub_preview {}"' \
+				--bind "ctrl-d:change-query(/purge)+accept" \
+				--bind "ctrl-alt-d:change-query(/purge-all)+accept" \
+				--bind "enter:change-query(/read)+accept" \
+				--bind "ctrl-w:change-query(/watch-later)+accept" \
+				--bind "ctrl-e:change-query(/queue)+accept"
+			)" || break
+			# the break above is necessary with set -e
+			# otherwise bash just exits
+
+		if [ -z "$OUTPUT" ]; then
 			break
 		fi
-		clear
-		printf "\nselected %s article(s)\n" "$(printf "%s\n" "$SEL" | wc -l)"
-		printf "\nq quit, r read, d purge (mark read), D purge all, w watch later\n"
-		printf "\n> "
-		read -n 1 ans </dev/tty
-		case "$ans" in
-			q ) exit;;
-			r ) printf '%s\n' "$SEL" | list_read;;
-			D ) sub_purge; break;;
-			d ) printf '%s\n' "$SEL" | list_purge;;
-			w ) printf '%s\n' "$SEL" | list_watchlater;;
+
+		SEL="$(printf "%s" "$OUTPUT" | tail -n+2)"
+		ACTION="$(printf "%s" "$OUTPUT" | head -n 1 | tail -c+2)"
+
+		case "$ACTION" in
+			read ) printf '%s\n' "$SEL" | list_read;;
+			purge-all ) sub_purge; break;;
+			purge ) printf '%s\n' "$SEL" | list_purge;;
+			watch-later ) printf '%s\n' "$SEL" | list_watchlater;;
+			queue )
+				# setting queue like this because piping to a while loop
+				# will make a subshell and a subshell can't modify
+				# variables in the parent
+				QUEUE="$(printf "%s\n" "$SEL" | \
+					# another subshell so printf shares QUEUE with the while
+					(
+						while read -r ARTICLE; do
+							REALPATH="$(realpath "$ARTICLE")"
+							if [ -n "$QUEUE" ]; then
+								QUEUE=$(printf "%s\n%s" "$QUEUE" "$REALPATH")
+							else
+								QUEUE="$REALPATH"
+							fi
+						done
+						printf "%s" "$QUEUE"
+					)
+				)"
+				printf '%s\n' "$SEL" | list_purge
+				;;
 		esac
 	done
+
+	if [ -n "$QUEUE" ]; then
+		printf "%s\n" "$QUEUE" | list_read
+	fi
 }
 
 case $subcmd in
