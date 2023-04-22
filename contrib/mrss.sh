@@ -239,10 +239,10 @@ sub_fzf() {
 
 	while true; do
 		NEWARTS="$(find . -type l -or -type f)"
-		export -f sub_preview
 		OUTPUT="$(printf "%s" "$NEWARTS" |
+			export SHELL="/bin/sh"
 			fzf --marker='*' --multi --print-query \
-				--preview 'bash -c "sub_preview {}"' \
+				--preview "cd $DIR; mrss preview {}" \
 				--bind "ctrl-d:change-query(/purge)+accept" \
 				--bind "ctrl-alt-d:change-query(/purge-all)+accept" \
 				--bind "enter:change-query(/read)+accept" \
