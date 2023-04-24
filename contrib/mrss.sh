@@ -110,7 +110,11 @@ list_read() {
 
 	while read -r art; do
 		LINK="$(sub_link "$art")"
-		if [ ! -z "$(printf "%s" "$LINK" | grep 'youtube.com\|odycdn\|simplecastaudio\|podcasts\|twitch')" ]; then
+		ENCLOSURE_TYPE="$(cat "$art" | jq -r '.enclosure.type // ""')"
+
+		if [ ! -z "$(printf "%s" "$LINK" | grep 'youtube.com\|odycdn\|twitch')" ] \
+			|| [ "$ENCLOSURE_TYPE" = "audio/mpeg" ]
+		then
 			VID="$VID$LINK "
 			if [ -n "$VIDFILES" ]; then
 				VIDFILES=$(printf "%s\n%s" "$VIDFILES" "$art")
