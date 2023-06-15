@@ -112,7 +112,7 @@ list_read() {
 		LINK="$(sub_link "$art")"
 		ENCLOSURE_TYPE="$(cat "$art" | jq -r '.enclosure.type // ""')"
 
-		if [ ! -z "$(printf "%s" "$LINK" | grep 'youtube.com\|odycdn\|twitch')" ] \
+		if [ ! -z "$(printf "%s" "$LINK" | grep 'youtube.com\|odycdn\|twitch\|www.ted.com')" ] \
 			|| [ "$ENCLOSURE_TYPE" = "audio/mpeg" ]
 		then
 			VID="$VID$LINK "
