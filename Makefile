@@ -1,5 +1,5 @@
 PREFIX = ~/.local
-VERSION = 0.3.1
+VERSION = 0.4.0
 
 PKG_CONFIG = pkg-config
 

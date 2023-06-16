@@ -155,10 +155,13 @@ openFile(const char *folder, char *fileName, char *fileExt)
 }
 
 static void
-outputHtml(itemStruct *item, FILE *f)
+outputHtml(itemStruct *item, FILE *f, const char *folder)
 {
 	if (item->fields[FIELD_TITLE])
 		fprintf(f, "<h1>%s</h1><br>\n", item->fields[FIELD_TITLE]);
+
+	fprintf(f, "From feed <b>%s</b><br>\n", folder);
+
 	if (item->fields[FIELD_LINK])
 		fprintf(f, "<a href=\"%s\">Link</a><br>\n", item->fields[FIELD_LINK]);
 	if (item->fields[FIELD_ENCLOSURE_URL])
@@ -171,9 +174,12 @@ outputHtml(itemStruct *item, FILE *f)
 
 #ifdef JSON
 static void
-outputJson(itemStruct *item, FILE *f)
+outputJson(itemStruct *item, FILE *f, const char *folder)
 {
 	json_object *root = json_object_new_object();
+
+	json_object_object_add(root, "feedname",
+			json_object_new_string(folder));
 
 	if (item->fields[FIELD_TITLE])
 		json_object_object_add(root, "title",
@@ -211,7 +217,7 @@ processItem(itemStruct *item, const char *folder)
 	int ret = 0;
 
 	char fileExt[10];
-	void (*outputFunction)(itemStruct *, FILE *);
+	void (*outputFunction)(itemStruct *, FILE *, const char *);
 
 	switch (outputFormat) {
 		case OUTPUT_HTML:
@@ -247,7 +253,7 @@ processItem(itemStruct *item, const char *folder)
 
 	// Do not overwrite files
 	if (!ftell(itemFile)) {
-		outputFunction(item, itemFile);
+		outputFunction(item, itemFile, folder);
 		ret = 1;
 		if (summaryFormat == SUMMARY_FILES)
 			logMsg(LOG_OUTPUT, "%s%c%s%s\n", folder, fsep(), basename, fileExt);
