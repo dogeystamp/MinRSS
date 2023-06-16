@@ -29,6 +29,8 @@ sub_help() {
 	echo "  fzf                  show articles using fzf"
 	echo "                         use the commands /read (enter), /purge (ctrl-d), /purge-all (ctrl-alt-d),"
 	echo "                         /watch-later (ctrl-w) and /queue (ctrl-e)"
+	echo "                         you can also run 'fzf feed' for a specific feed."
+	echo "                         'fzf -s' shuffles the feed."
 	echo
 	echo "article commands (pass files as arguments):"
 	echo "  read                 opens link from an article file in either a browser or mpv"
@@ -234,6 +236,13 @@ sub_select() {
 }
 
 sub_fzf() {
+	while getopts ":s" flag; do
+		case "$flag" in
+			s) MRSS_SHUF="yes";;
+		esac
+	done
+	shift `expr $OPTIND - 1`
+
 	if [ -z "$1" ]; then
 		DIR="$MRSS_NEWDIR"
 	else
@@ -243,8 +252,11 @@ sub_fzf() {
 
 	while true; do
 		NEWARTS="$(find . -type l -or -type f)"
+		if [ -n "$MRSS_SHUF" ]; then
+			NEWARTS=`printf "%s" "$NEWARTS" | shuf`
+		fi
+
 		OUTPUT="$(printf "%s" "$NEWARTS" |
-			export SHELL="/bin/sh"
 			fzf --marker='*' --multi --print-query \
 				--preview "cd $DIR; mrss preview {}" \
 				--bind "ctrl-d:change-query(/purge)+accept" \
