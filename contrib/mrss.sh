@@ -65,14 +65,19 @@ list_purge() {
 	while read -r ARTICLE; do
 		if [ -h "$ARTICLE" ]; then
 			rm "$ARTICLE"
+			if [ -n "$INDXFILE" ]; then
+				ENTRY="$(grep "^[0-9]*: $ARTICLE" "$INDXFILE")"
+				ID="$(printf "%s" "$ENTRY" | grep -o "^[0-9]*")"
+				sed -i "/^$ID:.*$/d" "$LISTFILE"
+			fi
 		fi
 	done
 }
 
 sub_purge() {
 	if [ -z "$@" ]; then
-		cd "$MRSS_DIR"
-		rm -r "$MRSS_NEWDIR"/*
+		cd "$MRSS_DIR"/new
+		find . -type l -or -type f | list_purge
 	else
 		for art in "$@"; do
 			printf "%s\n" "$art"
@@ -124,7 +129,7 @@ list_read() {
 				VIDFILES="$art"
 			fi
 		else
-			xdg-open $LINK 2> /dev/null &
+			xdg-open "$LINK" 2> /dev/null &
 			sub_purge "$art"
 		fi
 	done
@@ -153,7 +158,11 @@ sub_preview() {
 
 	ARTICLE="$1"
 
-	DIRNAME="$(basename $(dirname "$ARTICLE"))"
+	DIRNAME="$(cat "$ARTICLE" | jq -r '.feedname // ""')"
+	if [ -z "$DIRNAME" ]; then
+		DIRNAME="$(basename $(dirname "$ARTICLE"))"
+	fi
+
 	TITLE="$(cat "$ARTICLE" | jq -r '.title')"
 	DESC_TRUNC="$(cat "$ARTICLE" | jq -r '.description // ""' | w3m -dump -T text/html | head -n 20)"
 
@@ -235,6 +244,21 @@ sub_select() {
 	)
 }
 
+list_fzf_filename() {
+	# searches entry in index and returns its filename
+	while read -r ENTRY; do
+		ID="$(printf "%s" "$ENTRY" | grep -o "^[0-9]*")"
+		grep "^$ID: " "$INDXFILE" | sed "s/^[0-9]*: //"
+	done
+}
+
+sub_fzf_preview() {
+	# wrapper over sub_preview() that runs fzf_filename
+	INDXFILE="$1"
+	ENTRY="$2"
+	sub_preview "$(echo "$ENTRY" | list_fzf_filename "$INDXFILE")"
+}
+
 sub_fzf() {
 	while getopts ":s" flag; do
 		case "$flag" in
@@ -250,15 +274,25 @@ sub_fzf() {
 	fi
 	cd "$DIR"
 
-	while true; do
-		NEWARTS="$(find . -type l -or -type f)"
-		if [ -n "$MRSS_SHUF" ]; then
-			NEWARTS=`printf "%s" "$NEWARTS" | shuf`
-		fi
+	LISTFILE=`mktemp --suffix=mrss`
+	INDXFILE=`mktemp --suffix=mrss`
 
-		OUTPUT="$(printf "%s" "$NEWARTS" |
+	COUNTER="1"
+	find . -type l -or -type f \
+		| ([ -n "$MRSS_SHUF" ] && shuf || cat) \
+		| nl -ba -d'' -n'rz' -s': ' -w1 \
+		> "$INDXFILE"
+
+	cat "$INDXFILE" | sed "s/^[0-9]*: //" \
+		| xargs -rd "\n" cat \
+		| jq -r '[.feedname?, .title] | map(select(. != null)) | join(" - ")' \
+		| nl -ba -d'' -n'rz' -s': ' -w1 \
+		> "$LISTFILE"
+
+	while true; do
+		OUTPUT="$(cat "$LISTFILE" |
 			fzf --marker='*' --multi --print-query \
-				--preview "cd $DIR; mrss preview {}" \
+				--preview "cd $DIR; mrss fzf_preview '$INDXFILE' {}" \
 				--bind "ctrl-d:change-query(/purge)+accept" \
 				--bind "ctrl-alt-d:change-query(/purge-all)+accept" \
 				--bind "enter:change-query(/read)+accept" \
@@ -272,7 +306,7 @@ sub_fzf() {
 			break
 		fi
 
-		SEL="$(printf "%s" "$OUTPUT" | tail -n+2)"
+		SEL="$(printf "$OUTPUT\n" | tail -n+2 | list_fzf_filename)"
 		ACTION="$(printf "%s" "$OUTPUT" | head -n 1 | tail -c+2)"
 
 		case "$ACTION" in
@@ -302,6 +336,9 @@ sub_fzf() {
 				;;
 		esac
 	done
+
+	rm "$LISTFILE"
+	rm "$INDXFILE"
 
 	if [ -n "$QUEUE" ]; then
 		printf "%s\n" "$QUEUE" | list_read
