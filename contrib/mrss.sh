@@ -285,7 +285,7 @@ sub_fzf() {
 
 	cat "$INDXFILE" | sed "s/^[0-9]*: //" \
 		| xargs -rd "\n" cat \
-		| jq -r '[.feedname?, .title] | map(select(. != null)) | join(" - ")' \
+		| jq -r '[.feedname?, .title] | map(select(. != null)) | join(" - ") | sub("\n"; " ")' \
 		| nl -ba -d'' -n'rz' -s': ' -w1 \
 		> "$LISTFILE"
 
