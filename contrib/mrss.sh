@@ -23,13 +23,12 @@ sub_help() {
 	echo
 	echo "commands:"
 	echo "  update               updates feeds"
-	echo "  select               show each new article and prompt for an action;"
-	echo "                         you can run 'select new/feed' for a specific feed"
-	echo "                         or 'select watch-later'."
 	echo "  fzf                  show articles using fzf"
 	echo "                         use the commands /read (enter), /purge (ctrl-d), /purge-all (ctrl-alt-d),"
 	echo "                         /watch-later (ctrl-w) and /queue (ctrl-e)"
-	echo "                         you can also run 'fzf feed' for a specific feed."
+	echo "                         you can also 'fzf feed' for a specific feed,"
+	echo "                         or 'fzf new/feed' for new articles in the feed,"
+	echo "                         or 'fzf watch-later' for articles marked watch-later."
 	echo "                         'fzf -s' shuffles the feed."
 	echo
 	echo "article commands (pass files as arguments):"
@@ -77,7 +76,7 @@ list_purge() {
 sub_purge() {
 	if [ -z "$@" ]; then
 		cd "$MRSS_DIR"/new
-		find . -type l -or -type f | list_purge
+		find . -type f | list_purge
 	else
 		for art in "$@"; do
 			printf "%s\n" "$art"
@@ -186,64 +185,6 @@ sub_watchlater() {
 	done | list_watchlater
 }
 
-sub_select() {
-	if [ -z "$1" ]; then
-		DIR="$MRSS_NEWDIR"
-	else
-		DIR="$MRSS_DIR/$1"
-	fi
-	NEWARTS="$(find "$DIR" -type l -or -type f)"
-	TOTAL_COUNT="$(printf "%s" "$NEWARTS" | wc -l)"
-	printf "%s" "$NEWARTS" | (
-
-	INDEX=0
-	while read -r ARTICLE; do
-		if [ -n "$SKIPALL" ]; then
-			continue
-		fi
-
-		INDEX=$((INDEX+1))
-		clear
-		printf "\nItem %s/%s\n" "$INDEX" "$TOTAL_COUNT"
-		sub_preview "$ARTICLE"
-
-		printf "\n\n-----------------\n"
-		printf "\nq quit, r read, e queue article, f full summary, d purge (mark read),\n"
-		printf "s skip, S skip all, w watch later\n"
-
-		while true; do
-			printf "\n> "
-			read ans </dev/tty
-			case "$ans" in
-				q ) exit;;
-				r ) sub_read "$ARTICLE"; break;;
-				e )
-					if [ -n "$QUEUE" ]; then
-						QUEUE=$(printf "%s\n%s" "$QUEUE" "$ARTICLE")
-					else
-						QUEUE="$ARTICLE"
-					fi
-					break;;
-				f ) 
-				 cat "$ARTICLE" | jq -r '.description // ""' | w3m -o confirm_qq=false -T text/html
-				 ;;
-				d )
-					sub_purge "$ARTICLE"
-					break;;
-				s ) break;;
-				S ) SKIPALL="y"; break;;
-				w ) sub_watchlater "$ARTICLE"
-					break;;
-				* ) break;;
-			esac
-		done
-	done &&
-	if [ -n "$QUEUE" ]; then
-		printf "%s\n" "$QUEUE" | list_read 
-	fi
-	)
-}
-
 list_fzf_filename() {
 	# searches entry in index and returns its filename
 	while read -r ENTRY; do
@@ -257,6 +198,37 @@ sub_fzf_preview() {
 	INDXFILE="$1"
 	ENTRY="$2"
 	sub_preview "$(echo "$ENTRY" | list_fzf_filename "$INDXFILE")"
+}
+
+mrss_find() {
+	# a meta-feed should only have directory links
+	# if there is a file link, use the way faster approach to list files
+	if [ -f "$(realpath "$(ls | head -n 1)")" ]; then
+		find . -mindepth 1 -maxdepth 1 -or -type f -or -type l
+		return
+	fi
+
+	# follow directory links, but not file links
+	# this means you can make your own tag folders that link to specific feeds
+	# we don't follow file links because mrss purge only deletes links from new/
+
+	find . -mindepth 1 -maxdepth 1 -type d -or -type f -or -type l | \
+	(while read -r f; do
+		# this loop finds directories (symlink or real)
+		# regular files go through this pipeline unaffected
+		# symlink files are discarded
+		if [ -f "$f" ] || [ -d "$f" ]; then
+			printf "%s\n" "$f"
+		elif [ -h "$f" ]; then
+			if [ -d "$(realpath "$f")" ]; then
+				printf "%s\n" "$f"
+			fi
+		fi
+	done) | \
+	(while read -r f; do
+		# this loop lists directories
+		find -H "$f" -type f -or -type l
+	done)
 }
 
 sub_fzf() {
@@ -278,14 +250,14 @@ sub_fzf() {
 	INDXFILE=`mktemp --suffix=mrss`
 
 	COUNTER="1"
-	find . -type l -or -type f \
+	mrss_find \
 		| ([ -n "$MRSS_SHUF" ] && shuf || cat) \
 		| nl -ba -d'' -n'rz' -s': ' -w1 \
 		> "$INDXFILE"
 
 	cat "$INDXFILE" | sed "s/^[0-9]*: //" \
 		| xargs -rd "\n" cat \
-		| jq -r '[.feedname?, .title] | map(select(. != null)) | join(" - ") | sub("\n"; " ")' \
+		| jq -r '[.feedname?, .title] | map(select(. != null)) | join(" - ") | gsub("\n"; " ")' \
 		| nl -ba -d'' -n'rz' -s': ' -w1 \
 		> "$LISTFILE"
 
