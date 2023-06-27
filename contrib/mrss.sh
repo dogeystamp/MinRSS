@@ -278,7 +278,7 @@ sub_fzf() {
 			break
 		fi
 
-		SEL="$(printf "$OUTPUT\n" | tail -n+2 | list_fzf_filename)"
+		SEL="$(printf "%s\n" "$OUTPUT" | tail -n+2 | list_fzf_filename)"
 		ACTION="$(printf "%s" "$OUTPUT" | head -n 1 | tail -c+2)"
 
 		case "$ACTION" in
